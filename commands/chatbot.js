@@ -1,5 +1,22 @@
 const { setChatbot, getChatbot, removeChatbot } = require('../sql');
 const fetch = require('node-fetch');
+const fs = require('fs');
+const path = require('path');
+
+// Load chatbot config
+function loadChatbotConfig(groupId) {
+    try {
+        const configPath = path.join(__dirname, '../data/chatbot.json');
+        if (!fs.existsSync(configPath)) {
+            return null;
+        }
+        const data = JSON.parse(fs.readFileSync(configPath));
+        return data[groupId];
+    } catch (error) {
+        console.error('❌ Error loading chatbot config:', error.message);
+        return null;
+    }
+}
 
 async function handleChatbotCommand(sock, chatId, message, match) {
     if (!match) {
@@ -14,6 +31,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
             return sock.sendMessage(chatId, { text: '*Chatbot is already enabled for this group*' });
         }
         await setChatbot(chatId, true);
+        console.log(`✅ Chatbot settings updated for group ${chatId}`);
         return sock.sendMessage(chatId, { text: '*Chatbot has been enabled for this group*' });
     }
 
@@ -23,6 +41,7 @@ async function handleChatbotCommand(sock, chatId, message, match) {
             return sock.sendMessage(chatId, { text: '*Chatbot is already disabled for this group*' });
         }
         await removeChatbot(chatId);
+        console.log(`✅ Chatbot settings updated for group ${chatId}`);
         return sock.sendMessage(chatId, { text: '*Chatbot has been disabled for this group*' });
     }
 
@@ -30,20 +49,14 @@ async function handleChatbotCommand(sock, chatId, message, match) {
 }
 
 async function handleChatbotResponse(sock, chatId, message, userMessage, senderId) {
+    const config = loadChatbotConfig(chatId);
+    if (!config?.enabled) return;
+
     try {
         // Debug logs
         console.log('Starting chatbot response handler');
         console.log('Chat ID:', chatId);
         console.log('User Message:', userMessage);
-
-        // Check if chatbot is enabled for this group
-        const chatbotConfig = await getChatbot(chatId);
-        console.log('Chatbot config:', chatbotConfig);
-        
-        if (!chatbotConfig?.enabled) {
-            console.log('Chatbot not enabled for this group');
-            return;
-        }
 
         // Get bot's ID
         const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
@@ -106,8 +119,10 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
             mentions: [senderId]
         });
 
+        // Only log successful responses
+        console.log(`✅ Chatbot responded in group ${chatId}`);
     } catch (error) {
-        console.error('Error in chatbot response:', error);
+        console.error('❌ Error in chatbot response:', error.message);
         await sock.sendMessage(chatId, { 
             text: "Sorry, I encountered an error while processing your message.",
             quoted: message,

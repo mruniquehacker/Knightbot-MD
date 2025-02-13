@@ -1,78 +1,152 @@
 const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
-const { channelInfo } = require('../config/messageConfig');
 const settings = require('../settings');
+const fs = require('fs');
+const path = require('path');
+
+// Channel info for message context
+const channelInfo = {
+    contextInfo: {
+        forwardingScore: 999,
+        isForwarded: true,
+        forwardedNewsletterMessageInfo: {
+            newsletterJid: '120363161513685998@newsletter',
+            newsletterName: 'KnightBot MD',
+            serverMessageId: -1
+        }
+    }
+};
 
 async function viewOnceCommand(sock, chatId, message) {
     try {
-        // Check if the message is a reply
-        const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage;
+        // Get quoted message with better error handling
+        const quotedMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage ||
+                            message.message?.imageMessage ||
+                            message.message?.videoMessage;
+
         if (!quotedMessage) {
             await sock.sendMessage(chatId, { 
-                text: 'Please reply to a ViewOnce message with .vv command!',
-                ...channelInfo 
+                text: '❌ Please reply to a view once message!',
+                ...channelInfo
             });
             return;
         }
 
-        // Check for ViewOnce message in different possible formats
-        const viewOnceMessage = quotedMessage.viewOnceMessage || 
-                              quotedMessage.viewOnceMessageV2 || 
-                              quotedMessage.viewOnceImageMessage || 
-                              quotedMessage.viewOnceVideoMessage;
-
-        if (!viewOnceMessage) {
-            await sock.sendMessage(chatId, { 
-                text: 'This is not a ViewOnce message!',
-                ...channelInfo 
-            });
-            return;
-        }
+        // Enhanced view once detection
+        const isViewOnceImage = quotedMessage.imageMessage?.viewOnce === true || 
+                              quotedMessage.viewOnceMessage?.message?.imageMessage ||
+                              message.message?.viewOnceMessage?.message?.imageMessage;
+                              
+        const isViewOnceVideo = quotedMessage.videoMessage?.viewOnce === true || 
+                              quotedMessage.viewOnceMessage?.message?.videoMessage ||
+                              message.message?.viewOnceMessage?.message?.videoMessage;
 
         // Get the actual message content
-        const messageContent = viewOnceMessage.message || viewOnceMessage;
-        const messageType = Object.keys(messageContent)[0];
-        const mediaContent = messageContent[messageType];
-        const caption = mediaContent?.caption || '';
-        const sender = message.key.participant || message.key.remoteJid;
-
-        // Download media content
-        const stream = await downloadContentFromMessage(
-            mediaContent,
-            messageType.replace('Message', '').toLowerCase()
-        );
-        let buffer = Buffer.from([]);
-        for await (const chunk of stream) {
-            buffer = Buffer.concat([buffer, chunk]);
+        let mediaMessage;
+        if (isViewOnceImage) {
+            mediaMessage = quotedMessage.imageMessage || 
+                         quotedMessage.viewOnceMessage?.message?.imageMessage ||
+                         message.message?.viewOnceMessage?.message?.imageMessage;
+        } else if (isViewOnceVideo) {
+            mediaMessage = quotedMessage.videoMessage || 
+                         quotedMessage.viewOnceMessage?.message?.videoMessage ||
+                         message.message?.viewOnceMessage?.message?.videoMessage;
         }
 
-        // Identify media type
-        const mediaTypeMap = {
-            imageMessage: { type: 'Image 📸', extension: '.jpg' },
-            videoMessage: { type: 'Video 📹', extension: '.mp4' },
-            audioMessage: { type: 'Audio 🎵', extension: '.mp3' },
-        };
-
-        const { type: mediaType } = mediaTypeMap[messageType] || {};
-
-        if (!mediaType || !buffer) {
-            throw new Error('Unsupported media type or failed to download content.');
+        if (!mediaMessage) {
+            console.log('Message structure:', JSON.stringify(message, null, 2));
+            await sock.sendMessage(chatId, { 
+                text: '❌ Could not detect view once message! Please make sure you replied to a view once image/video.',
+                ...channelInfo
+            });
+            return;
         }
 
-        // Send the media back without ViewOnce restriction
-        await sock.sendMessage(chatId, {
-            [messageType.replace('Message', '')]: buffer,
-            caption: `*💀 KnightBot Anti ViewOnce 💀*\n\n*Type:* ${mediaType}\n*Sender:* @${sender.split('@')[0]}\n${
-                caption ? `*Caption:* ${caption}` : ''
-            }`,
-            mentions: [sender],
+        // Handle view once image
+        if (isViewOnceImage) {
+            try {
+                console.log('📸 Processing view once image...');
+                const stream = await downloadContentFromMessage(mediaMessage, 'image');
+                let buffer = Buffer.from([]);
+                for await (const chunk of stream) {
+                    buffer = Buffer.concat([buffer, chunk]);
+                }
+
+                const caption = mediaMessage.caption || '';
+                
+                await sock.sendMessage(chatId, { 
+                    image: buffer,
+                    caption: `*💀 KnightBot Anti ViewOnce 💀*\n\n*Type:* Image 📸\n${caption ? `*Caption:* ${caption}` : ''}`,
+                    ...channelInfo
+                });
+                console.log('✅ View once image processed successfully');
+                return;
+            } catch (err) {
+                console.error('❌ Error downloading image:', err);
+                await sock.sendMessage(chatId, { 
+                    text: '❌ Failed to process view once image! Error: ' + err.message,
+                    ...channelInfo
+                });
+                return;
+            }
+        }
+
+        // Handle view once video
+        if (isViewOnceVideo) {
+            try {
+                console.log('📹 Processing view once video...');
+                
+                // Create temp directory if it doesn't exist
+                const tempDir = path.join(__dirname, '../temp');
+                if (!fs.existsSync(tempDir)) {
+                    fs.mkdirSync(tempDir);
+                }
+
+                const tempFile = path.join(tempDir, `temp_${Date.now()}.mp4`);
+                const stream = await downloadContentFromMessage(mediaMessage, 'video');
+                const writeStream = fs.createWriteStream(tempFile);
+                
+                for await (const chunk of stream) {
+                    writeStream.write(chunk);
+                }
+                writeStream.end();
+
+                // Wait for file to be written
+                await new Promise((resolve) => writeStream.on('finish', resolve));
+
+                const caption = mediaMessage.caption || '';
+
+                await sock.sendMessage(chatId, { 
+                    video: fs.readFileSync(tempFile),
+                    caption: `*💀 KnightBot Anti ViewOnce 💀*\n\n*Type:* Video 📹\n${caption ? `*Caption:* ${caption}` : ''}`,
+                    ...channelInfo
+                });
+
+                // Clean up temp file
+                fs.unlinkSync(tempFile);
+                
+                console.log('✅ View once video processed successfully');
+                return;
+            } catch (err) {
+                console.error('❌ Error processing video:', err);
+                await sock.sendMessage(chatId, { 
+                    text: '❌ Failed to process view once video! Error: ' + err.message,
+                    ...channelInfo
+                });
+                return;
+            }
+        }
+
+        // If we get here, it wasn't a view once message
+        await sock.sendMessage(chatId, { 
+            text: '❌ This is not a view once message! Please reply to a view once image/video.',
             ...channelInfo
         });
 
     } catch (error) {
-        console.error('Error processing ViewOnce message:', error);
+        console.error('❌ Error in viewonce command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Error processing ViewOnce media. Please try again later.',
-            ...channelInfo 
+            text: '❌ Error processing view once message! Error: ' + error.message,
+            ...channelInfo
         });
     }
 }

@@ -66,6 +66,8 @@ async function helpCommand(sock, chatId, channelLink) {
 ╔═══════════════════╗
 🛠️ *Owner Commands*:
 ║ ➤ .mode
+║ ➤ .autostatus
+║ ➤ .clearsession
 ╚═══════════════════╝
 
 ╔═══════════════════╗

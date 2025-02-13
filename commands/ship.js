@@ -4,27 +4,29 @@ async function shipCommand(sock, chatId, msg, groupMetadata) {
         const participants = await sock.groupMetadata(chatId);
         const ps = participants.participants.map(v => v.id);
         
-        // Get sender's ID
-        const sender = msg.key.participant || msg.key.remoteJid;
+        // Get two random participants
+        let firstUser, secondUser;
         
-        // Get random participant (different from sender)
-        let randomParticipant;
+        // Select first random user
+        firstUser = ps[Math.floor(Math.random() * ps.length)];
+        
+        // Select second random user (different from first)
         do {
-            randomParticipant = ps[Math.floor(Math.random() * ps.length)];
-        } while (randomParticipant === sender);
+            secondUser = ps[Math.floor(Math.random() * ps.length)];
+        } while (secondUser === firstUser);
 
         // Format the mentions
         const formatMention = id => '@' + id.split('@')[0];
 
         // Create and send the ship message
         await sock.sendMessage(chatId, {
-            text: `${formatMention(sender)} ❤️ ${formatMention(randomParticipant)}\nCongratulations 💖🍻`,
-            mentions: [sender, randomParticipant]
+            text: `${formatMention(firstUser)} ❤️ ${formatMention(secondUser)}\nCongratulations 💖🍻`,
+            mentions: [firstUser, secondUser]
         });
 
     } catch (error) {
         console.error('Error in ship command:', error);
-        await sock.sendMessage(chatId, { text: 'Failed to ship! Make sure this is a group.' });
+        await sock.sendMessage(chatId, { text: '❌ Failed to ship! Make sure this is a group.' });
     }
 }
 

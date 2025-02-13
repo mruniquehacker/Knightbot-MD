@@ -1,15 +1,4 @@
 const { isAdmin } = require('../helpers/isAdmin');
-const channelInfo = {
-    contextInfo: {
-        forwardingScore: 999,
-        isForwarded: true,
-        forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363161513685998@newsletter',
-            newsletterName: 'KnightBot MD',
-            serverMessageId: -1
-        }
-    }
-};
 
 // Function to handle manual promotions via command
 async function promoteCommand(sock, chatId, mentionedJids, message) {
@@ -27,23 +16,35 @@ async function promoteCommand(sock, chatId, mentionedJids, message) {
     // If no user found through either method
     if (userToPromote.length === 0) {
         await sock.sendMessage(chatId, { 
-            text: 'Please mention the user or reply to their message to promote!', 
-            ...channelInfo 
+            text: 'Please mention the user or reply to their message to promote!'
         });
         return;
     }
 
     try {
         await sock.groupParticipantsUpdate(chatId, userToPromote, "promote");
-        const mentions = userToPromote.map(jid => `${jid.split('@')[0]}`).join(', ');
+        
+        // Get usernames for each promoted user
+        const usernames = await Promise.all(userToPromote.map(async jid => {
+            
+            return `@${jid.split('@')[0]}`;
+        }));
+
+        // Get promoter's name (the bot user in this case)
+        const promoterJid = sock.user.id;
+        
+        const promotionMessage = `*『 GROUP PROMOTION 』*\n\n` +
+            `👥 *Promoted User${userToPromote.length > 1 ? 's' : ''}:*\n` +
+            `${usernames.map(name => `• ${name}`).join('\n')}\n\n` +
+            `👑 *Promoted By:* @${promoterJid.split('@')[0]}\n\n` +
+            `📅 *Date:* ${new Date().toLocaleString()}`;
         await sock.sendMessage(chatId, { 
-            text: `Successfully promoted ${mentions} to admin!`,
-            mentions: userToPromote,
-            ...channelInfo 
+            text: promotionMessage,
+            mentions: [...userToPromote, promoterJid]
         });
     } catch (error) {
         console.error('Error in promote command:', error);
-        await sock.sendMessage(chatId, { text: 'Failed to promote user(s)!', ...channelInfo });
+        await sock.sendMessage(chatId, { text: 'Failed to promote user(s)!'});
     }
 }
 
@@ -56,31 +57,32 @@ async function handlePromotionEvent(sock, groupId, participants, author) {
             author
         });
 
-        const mentions = participants.map(jid => `${jid.split('@')[0]}`).join(', ');
+        // Get usernames for promoted participants
+        const promotedUsernames = await Promise.all(participants.map(async jid => {
+            return `@${jid.split('@')[0]} `;
+        }));
+
         let promotedBy;
         let mentionList = [...participants];
 
         if (author && author.length > 0) {
             // Ensure author has the correct format
             const authorJid = author;
-            promotedBy = `${authorJid.split('@')[0]}`;
+            promotedBy = `@${authorJid.split('@')[0]}`;
             mentionList.push(authorJid);
-            
-            console.log('Author Info:', {
-                original: author,
-                formatted: authorJid,
-                promotedBy,
-                mentionList
-            });
         } else {
             promotedBy = 'System';
-            console.log('No author found in event');
         }
+
+        const promotionMessage = `*『 GROUP PROMOTION 』*\n\n` +
+            `👥 *Promoted User${participants.length > 1 ? 's' : ''}:*\n` +
+            `${promotedUsernames.map(name => `• ${name}`).join('\n')}\n\n` +
+            `👑 *Promoted By:* ${promotedBy}\n\n` +
+            `📅 *Date:* ${new Date().toLocaleString()}`;
         
         await sock.sendMessage(groupId, {
-            text: `👑 ${mentions} has been promoted to admin by ${promotedBy}`,
-            mentions: mentionList,
-            ...channelInfo
+            text: promotionMessage,
+            mentions: mentionList
         });
     } catch (error) {
         console.error('Error handling promotion event:', error);
