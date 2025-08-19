@@ -58,12 +58,12 @@ async function autoStatusCommand(sock, chatId, msg, args) {
             config.enabled = false;
             fs.writeFileSync(configPath, JSON.stringify(config));
             await sock.sendMessage(chatId, { 
-                text: '❌ Auto status view has been disabled!\nBot will no longer automatically view statuses.',
+                text: '✅️ Auto status view has been disabled!\nBot will no longer automatically view statuses.',
                 ...channelInfo
             });
         } else {
             await sock.sendMessage(chatId, { 
-                text: '❌ Invalid command! Use:\n.autostatus on - Enable auto status view\n.autostatus off - Disable auto status view',
+                text: '✅️ Invalid command! Use:\n.autostatus on - Enable auto status view\n.autostatus off - Disable auto status view',
                 ...channelInfo
             });
         }
@@ -71,7 +71,7 @@ async function autoStatusCommand(sock, chatId, msg, args) {
     } catch (error) {
         console.error('Error in autostatus command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Error occurred while managing auto status!\n' + error.message,
+            text: '✅️ Error occurred while managing auto status!\n' + error.message,
             ...channelInfo
         });
     }
