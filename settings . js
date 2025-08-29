@@ -1,0 +1,8 @@
+```js
+module.exports = {
+  owner: ['2349134085286'], // Replace with your phone number
+  botName: 'KnightBot',
+  sessionName: 'session', // or change to a custom session folder name if needed
+  prefix: ['!'], // Change to ['.'] or ['/'] if you prefer
+};
+```
