@@ -60,10 +60,10 @@ async function tiktokCommand(sock, chatId, message) {
         try {
             // Try multiple APIs in sequence
             const apis = [
-                `https://api.princetechn.com/api/download/tiktok?apikey=prince&url=${encodeURIComponent(url)}`,
-                `https://api.princetechn.com/api/download/tiktokdlv2?apikey=prince&url=${encodeURIComponent(url)}`,
-                `https://api.princetechn.com/api/download/tiktokdlv3?apikey=prince&url=${encodeURIComponent(url)}`,
-                `https://api.princetechn.com/api/download/tiktokdlv4?apikey=prince&url=${encodeURIComponent(url)}`,
+                `https://api.princetechn.com/api/download/tiktok?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(url)}`,
+                `https://api.princetechn.com/api/download/tiktokdlv2?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(url)}`,
+                `https://api.princetechn.com/api/download/tiktokdlv3?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(url)}`,
+                `https://api.princetechn.com/api/download/tiktokdlv4?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(url)}`,
                 `https://api.dreaded.site/api/tiktok?url=${encodeURIComponent(url)}`
             ];
 

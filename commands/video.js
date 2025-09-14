@@ -8,7 +8,7 @@ const execPromise = util.promisify(exec);
 
 const princeVideoApi = {
     base: 'https://api.princetechn.com/api/download/ytmp4',
-    apikey: process.env.PRINCE_API_KEY || 'prince',
+    apikey: process.env.PRINCE_API_KEY || 'prince_tech_api_azfsbshfb',
     async fetchMeta(videoUrl) {
         const params = new URLSearchParams({ apikey: this.apikey, url: videoUrl });
         const url = `${this.base}?${params.toString()}`;
