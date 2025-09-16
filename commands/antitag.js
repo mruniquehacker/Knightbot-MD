@@ -93,7 +93,6 @@ async function handleTagDetection(sock, chatId, message, senderId) {
             const mentionThreshold = Math.ceil(participants.length * 0.5);
             
             if (mentions.length >= mentionThreshold) {
-                console.log(`Antitag: Detected tagall in group ${chatId} by ${senderId}`);
                 
                 const action = antitagSetting.action || 'delete';
                 
@@ -114,13 +113,25 @@ async function handleTagDetection(sock, chatId, message, senderId) {
                     }, { quoted: message });
                     
                 } else if (action === 'kick') {
-                    // Kick the user
-                    await sock.groupParticipantsUpdate(chatId, [senderId], "remove");
-                    
-                    // Send notification
+                    // First delete the message
                     await sock.sendMessage(chatId, {
-                        text: `🚫 *User Kicked!*\n\n@${senderId.split('@')[0]} has been kicked for tagging all members.`
-                    },{quoted :message});
+                        delete: {
+                            remoteJid: chatId,
+                            fromMe: false,
+                            id: message.key.id,
+                            participant: senderId
+                        }
+                    });
+
+                    // Then kick the user
+                    await sock.groupParticipantsUpdate(chatId, [senderId], "remove");
+
+                    // Send notification
+                    const usernames = [`@${senderId.split('@')[0]}`];
+                    await sock.sendMessage(chatId, {
+                        text: `🚫 *Antitag Detected!*\n\n${usernames.join(', ')} has been kicked for tagging all members.`,
+                        mentions: [senderId]
+                    }, { quoted: message });
                 }
             }
         }

@@ -104,7 +104,7 @@ async function deleteCommand(sock, chatId, message, senderId) {
             }
         }
 
-        await sock.sendMessage(chatId, { text: `Deleted ${toDelete.length} message(s) from @${(targetUser||'').split('@')[0]}`, mentions: [targetUser] }, { quoted: message });
+       // await sock.sendMessage(chatId, { text: `Deleted ${toDelete.length} message(s) from @${(targetUser||'').split('@')[0]}`, mentions: [targetUser] }, { quoted: message });
     } catch (err) {
         await sock.sendMessage(chatId, { text: 'Failed to delete messages.' }, { quoted: message });
     }

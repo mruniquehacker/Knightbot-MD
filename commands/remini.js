@@ -51,7 +51,7 @@ async function reminiCommand(sock, chatId, message, args) {
         }
 
         // Call the Remini API
-        const apiUrl = `https://api.princetechn.com/api/tools/remini?apikey=prince&url=${encodeURIComponent(imageUrl)}`;
+        const apiUrl = `https://api.princetechn.com/api/tools/remini?apikey=prince_tech_api_azfsbshfb&url=${encodeURIComponent(imageUrl)}`;
         
         const response = await axios.get(apiUrl, {
             timeout: 60000, // 60 second timeout (AI processing takes longer)

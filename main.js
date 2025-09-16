@@ -107,6 +107,7 @@ const removebgCommand = require('./commands/removebg');
 const { reminiCommand } = require('./commands/remini');
 const { igsCommand } = require('./commands/igs');
 const { anticallCommand, readState: readAnticallState } = require('./commands/anticall');
+const settingsCommand = require('./commands/settings');
 
 // Global settings
 global.packname = settings.packname;
@@ -346,6 +347,9 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 break;
             case userMessage.startsWith('.attp'):
                 await attpCommand(sock, chatId, message);
+                break;
+            case userMessage === '.settings':
+                await settingsCommand(sock, chatId, message);
                 break;
             case userMessage.startsWith('.mode'):
                 // Check if sender is the owner
@@ -1064,14 +1068,25 @@ async function handleGroupParticipantUpdate(sock, update) {
         // Check if it's a group
         if (!id.endsWith('@g.us')) return;
 
+        // Respect bot mode: only announce promote/demote in public mode
+        let isPublic = true;
+        try {
+            const modeData = JSON.parse(fs.readFileSync('./data/messageCount.json'));
+            if (typeof modeData.isPublic === 'boolean') isPublic = modeData.isPublic;
+        } catch (e) {
+            // If reading fails, default to public behavior
+        }
+
         // Handle promotion events
         if (action === 'promote') {
+            if (!isPublic) return;
             await handlePromotionEvent(sock, id, participants, author);
             return;
         }
 
         // Handle demotion events
         if (action === 'demote') {
+            if (!isPublic) return;
             await handleDemotionEvent(sock, id, participants, author);
             return;
         }

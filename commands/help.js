@@ -66,6 +66,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .antidelete
 ║ ➤ .cleartmp
 ║ ➤ .update
+║ ➤ .settings
 ║ ➤ .setpp <reply to image>
 ║ ➤ .autoreact <on/off>
 ║ ➤ .autostatus <on/off>
