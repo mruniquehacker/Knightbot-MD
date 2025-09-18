@@ -83,6 +83,7 @@ const textmakerCommand = require('./commands/textmaker');
 const { handleAntideleteCommand, handleMessageRevocation, storeMessage } = require('./commands/antidelete');
 const clearTmpCommand = require('./commands/cleartmp');
 const setProfilePicture = require('./commands/setpp');
+const { setGroupDescription, setGroupName, setGroupPhoto } = require('./commands/groupmanage');
 const instagramCommand = require('./commands/instagram');
 const facebookCommand = require('./commands/facebook');
 const playCommand = require('./commands/play');
@@ -107,6 +108,7 @@ const removebgCommand = require('./commands/removebg');
 const { reminiCommand } = require('./commands/remini');
 const { igsCommand } = require('./commands/igs');
 const { anticallCommand, readState: readAnticallState } = require('./commands/anticall');
+const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
 const settingsCommand = require('./commands/settings');
 
 // Global settings
@@ -219,6 +221,20 @@ async function handleMessages(sock, messageUpdate, printLog) {
             await handleBadwordDetection(sock, chatId, message, userMessage, senderId);
         }
 
+        // PM blocker: block non-owner DMs when enabled (do not ban)
+        if (!isGroup && !message.key.fromMe && !senderIsSudo) {
+            try {
+                const pmState = readPmBlockerState();
+                if (pmState.enabled) {
+                    // Inform user, delay, then block without banning globally
+                    await sock.sendMessage(chatId, { text: pmState.message || 'Private messages are blocked. Please contact the owner in groups only.' });
+                    await new Promise(r => setTimeout(r, 1500));
+                    try { await sock.updateBlockStatus(chatId, 'block'); } catch (e) { }
+                    return;
+                }
+            } catch (e) { }
+        }
+
         // Then check for command prefix
         if (!userMessage.startsWith('.')) {
             // Show typing indicator if autotyping is enabled
@@ -235,11 +251,11 @@ async function handleMessages(sock, messageUpdate, printLog) {
         }
 
         // List of admin commands
-        const adminCommands = ['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kick', '.tagall', '.antilink', '.antitag'];
+        const adminCommands = ['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kick', '.tagall', '.antilink', '.antitag', '.setgdesc', '.setgname', '.setgpp'];
         const isAdminCommand = adminCommands.some(cmd => userMessage.startsWith(cmd));
 
         // List of owner commands
-        const ownerCommands = ['.mode', '.autostatus', '.antidelete', '.cleartmp', '.setpp', '.clearsession', '.areact', '.autoreact', '.autotyping', '.autoread'];
+        const ownerCommands = ['.mode', '.autostatus', '.antidelete', '.cleartmp', '.setpp', '.clearsession', '.areact', '.autoreact', '.autotyping', '.autoread', '.pmblocker'];
         const isOwnerCommand = ownerCommands.some(cmd => userMessage.startsWith(cmd));
 
         let isSenderAdmin = false;
@@ -348,6 +364,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage.startsWith('.attp'):
                 await attpCommand(sock, chatId, message);
                 break;
+           
             case userMessage === '.settings':
                 await settingsCommand(sock, chatId, message);
                 break;
@@ -408,6 +425,18 @@ async function handleMessages(sock, messageUpdate, printLog) {
                     const args = userMessage.split(' ').slice(1).join(' ');
                     await anticallCommand(sock, chatId, message, args);
                 }
+                break;
+            case userMessage.startsWith('.pmblocker'):
+                if (!message.key.fromMe && !senderIsSudo) {
+                    await sock.sendMessage(chatId, { text: 'Only owner/sudo can use pmblocker.' }, { quoted: message });
+                    commandExecuted = true;
+                    break;
+                }
+                {
+                    const args = userMessage.split(' ').slice(1).join(' ');
+                    await pmblockerCommand(sock, chatId, message, args);
+                }
+                commandExecuted = true;
                 break;
             case userMessage === '.owner':
                 await ownerCommand(sock, chatId);
@@ -772,6 +801,21 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 break;
             case userMessage === '.setpp':
                 await setProfilePicture(sock, chatId, message);
+                break;
+            case userMessage.startsWith('.setgdesc'):
+                {
+                    const text = rawText.slice(9).trim();
+                    await setGroupDescription(sock, chatId, senderId, text, message);
+                }
+                break;
+            case userMessage.startsWith('.setgname'):
+                {
+                    const text = rawText.slice(9).trim();
+                    await setGroupName(sock, chatId, senderId, text, message);
+                }
+                break;
+            case userMessage.startsWith('.setgpp'):
+                await setGroupPhoto(sock, chatId, senderId, message);
                 break;
             case userMessage.startsWith('.instagram') || userMessage.startsWith('.insta') || (userMessage === '.ig' || userMessage.startsWith('.ig ')):
                 await instagramCommand(sock, chatId, message);
