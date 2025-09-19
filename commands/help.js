@@ -34,6 +34,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .trt <text> <lang>
 ║ ➤ .ss <link>
 ║ ➤ .jid
+║ ➤ .url
 ╚═══════════════════╝ 
 
 ╔═══════════════════╗
@@ -126,6 +127,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .gemini <question>
 ║ ➤ .imagine <prompt>
 ║ ➤ .flux <prompt>
+║ ➤ .sora <prompt>
 ╚═══════════════════╝
 
 ╔═══════════════════╗
@@ -169,6 +171,7 @@ async function helpCommand(sock, chatId, message) {
 📥 *Downloader*:
 ║ ➤ .play <song_name>
 ║ ➤ .song <song_name>
+║ ➤ .spotify <query>
 ║ ➤ .instagram <link>
 ║ ➤ .facebook <link>
 ║ ➤ .tiktok <link>
