@@ -25,7 +25,7 @@ async function settingsCommand(sock, chatId, message) {
         const autoread = readJsonSafe(`${dataDir}/autoread.json`, { enabled: true });
         const autotyping = readJsonSafe(`${dataDir}/autotyping.json`, { enabled: false });
         const pmblocker = readJsonSafe(`${dataDir}/pmblocker.json`, { enabled: false });
-        const anticall = readJsonSafe(`${dataDir}/anticall.json`, { enabled: false });
+        const anticall = readJsonSafe(`${dataDir}/anticall.json`, { enabled: true });
         const userGroupData = readJsonSafe(`${dataDir}/userGroupData.json`, {
             antilink: {}, antibadword: {}, welcome: {}, goodbye: {}, chatbot: {}, antitag: {}
         });
