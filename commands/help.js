@@ -52,6 +52,8 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .clear
 ║ ➤ .tag <message>
 ║ ➤ .tagall
+║ ➤ .tagnotadmin
+║ ➤ .hidetag <message>
 ║ ➤ .chatbot
 ║ ➤ .resetlink
 ║ ➤ .antitag <on/off>

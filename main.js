@@ -35,6 +35,8 @@ const { handleAntitagCommand, handleTagDetection } = require('./commands/antitag
 const { Antilink } = require('./lib/antilink');
 const memeCommand = require('./commands/meme');
 const tagCommand = require('./commands/tag');
+const tagNotAdminCommand = require('./commands/tagnotadmin');
+const hideTagCommand = require('./commands/hidetag');
 const jokeCommand = require('./commands/joke');
 const quoteCommand = require('./commands/quote');
 const factCommand = require('./commands/fact');
@@ -251,7 +253,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         }
 
         // List of admin commands
-        const adminCommands = ['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kick', '.tagall', '.antilink', '.antitag', '.setgdesc', '.setgname', '.setgpp'];
+        const adminCommands = ['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kick', '.tagall', '.tagnotadmin', '.hidetag', '.antilink', '.antitag', '.setgdesc', '.setgname', '.setgpp'];
         const isAdminCommand = adminCommands.some(cmd => userMessage.startsWith(cmd));
 
         // List of owner commands
@@ -448,10 +450,20 @@ async function handleMessages(sock, messageUpdate, printLog) {
                     await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use the .tagall command.', ...channelInfo }, { quoted: message });
                 }
                 break;
+            case userMessage === '.tagnotadmin':
+                await tagNotAdminCommand(sock, chatId, senderId, message);
+                break;
+            case userMessage.startsWith('.hidetag'):
+                {
+                    const messageText = rawText.slice(8).trim();
+                    const replyMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage || null;
+                    await hideTagCommand(sock, chatId, senderId, messageText, replyMessage, message);
+                }
+                break;
             case userMessage.startsWith('.tag'):
                 const messageText = rawText.slice(4).trim();  // use rawText here, not userMessage
                 const replyMessage = message.message?.extendedTextMessage?.contextInfo?.quotedMessage || null;
-                await tagCommand(sock, chatId, senderId, messageText, replyMessage);
+                await tagCommand(sock, chatId, senderId, messageText, replyMessage, message);
                 break;
             case userMessage.startsWith('.antilink'):
                 if (!isGroup) {
@@ -995,8 +1007,6 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage.startsWith('.face-palm'):
             case userMessage.startsWith('.animuquote'):
             case userMessage.startsWith('.quote'):
-            case userMessage.startsWith('.neko'):
-            case userMessage.startsWith('.waifu'):
             case userMessage.startsWith('.loli'):
                 {
                     const parts = userMessage.trim().split(/\s+/);

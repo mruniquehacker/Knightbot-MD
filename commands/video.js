@@ -1,20 +1,9 @@
 const axios = require('axios');
 const yts = require('yt-search');
-const fs = require('fs');
-const path = require('path');
-const { exec } = require('child_process');
-const util = require('util');
-const execPromise = util.promisify(exec);
 
-const princeVideoApi = {
-    base: 'https://api.princetechn.com/api/download/ytmp4',
-    apikey: process.env.PRINCE_API_KEY || 'prince_tech_api_azfsbshfb',
-    async fetchMeta(videoUrl) {
-        const params = new URLSearchParams({ apikey: this.apikey, url: videoUrl });
-        const url = `${this.base}?${params.toString()}`;
-        const { data } = await axios.get(url, { timeout: 20000, headers: { 'user-agent': 'Mozilla/5.0', accept: 'application/json' } });
-        return data;
-    }
+// Izumi API configuration
+const izumi = {
+    baseURL: "https://izumiiiiiiii.dpdns.org"
 };
 
 async function videoCommand(sock, chatId, message) {
@@ -67,168 +56,29 @@ async function videoCommand(sock, chatId, message) {
             return;
         }
 
-        // PrinceTech video API
-        let videoDownloadUrl = '';
-        let title = '';
-        try {
-            const meta = await princeVideoApi.fetchMeta(videoUrl);
-            if (meta?.success && meta?.result?.download_url) {
-                videoDownloadUrl = meta.result.download_url;
-                title = meta.result.title || 'video';
-            } else {
-                await sock.sendMessage(chatId, { text: 'Failed to fetch video from the API.' }, { quoted: message });
-                return;
-            }
-        } catch (e) {
-            console.error('[VIDEO] prince api error:', e?.message || e);
-            await sock.sendMessage(chatId, { text: 'Failed to fetch video from the API.' }, { quoted: message });
-            return;
-        }
-        const filename = `${title}.mp4`;
-
-        // Try sending the video directly from the remote URL (like play.js)
-        try {
-            await sock.sendMessage(chatId, {
-                video: { url: videoDownloadUrl },
-                mimetype: 'video/mp4',
-                fileName: filename,
-                caption: `*${title}*\n\n> *_Downloaded by Knight Bot MD_*`
-            }, { quoted: message });
-            return;
-        } catch (directSendErr) {
-            console.log('[video.js] Direct send from URL failed:', directSendErr.message);
-        }
-
-        // If direct send fails, fallback to downloading and converting
-        // Download the video file first
-        const tempDir = path.join(__dirname, '../temp');
-        if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir);
-        const tempFile = path.join(tempDir, `${Date.now()}.mp4`);
-        const convertedFile = path.join(tempDir, `converted_${Date.now()}.mp4`);
+        // Get Izumi API link for video
+        const apiUrl = `${izumi.baseURL}/downloader/youtube?url=${encodeURIComponent(videoUrl)}&format=720`;
         
-        let buffer;
-        let download403 = false;
-        try {
-            const videoRes = await axios.get(videoDownloadUrl, {
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                    'Referer': 'https://youtube.com/'
-                },
-                responseType: 'arraybuffer'
-            });
-            buffer = Buffer.from(videoRes.data);
-        } catch (err) {
-            if (err.response && err.response.status === 403) {
-                // try alternate URL pattern as best-effort
-                download403 = true;
-            } else {
-                await sock.sendMessage(chatId, { text: 'Failed to download the video file.' }, { quoted: message });
-                return;
+        const res = await axios.get(apiUrl, {
+            timeout: 30000,
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
             }
-        }
-        // Fallback: try another URL if 403
-        if (download403) {
-            let altUrl = videoDownloadUrl.replace(/(cdn|s)\d+/, 's5');
-            try {
-                const videoRes = await axios.get(altUrl, {
-                    headers: {
-                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
-                        'Referer': 'https://youtube.com/'
-                    },
-                    responseType: 'arraybuffer'
-                });
-                buffer = Buffer.from(videoRes.data);
-            } catch (err2) {
-                await sock.sendMessage(chatId, { text: 'Failed to download the video file from alternate CDN.' }, { quoted: message });
-                return;
-            }
-        }
-        if (!buffer || buffer.length < 1024) {
-            await sock.sendMessage(chatId, { text: 'Downloaded file is empty or too small.' }, { quoted: message });
-            return;
-        }
-        
-        fs.writeFileSync(tempFile, buffer);
+        });
 
-        try {
-            await execPromise(`ffmpeg -i "${tempFile}" -c:v libx264 -c:a aac -preset veryfast -crf 26 -movflags +faststart "${convertedFile}"`);
-            // Check if conversion was successful
-            if (!fs.existsSync(convertedFile)) {
-                await sock.sendMessage(chatId, { text: 'Converted file missing.' }, { quoted: message });
-                return;
-            }
-            const stats = fs.statSync(convertedFile);
-            const maxSize = 62 * 1024 * 1024; // 62MB
-            if (stats.size > maxSize) {
-                await sock.sendMessage(chatId, { text: 'Video is too large to send on WhatsApp.' }, { quoted: message });
-                return;
-            }
-            // Try sending the converted video
-            try {
-                await sock.sendMessage(chatId, {
-                    video: { url: convertedFile },
-                    mimetype: 'video/mp4',
-                    fileName: filename,
-                    caption: `*${title}*`
-                }, { quoted: message });
-            } catch (sendErr) {
-                console.error('[VIDEO] send url failed, trying buffer:', sendErr?.message || sendErr);
-                const videoBuffer = fs.readFileSync(convertedFile);
-                await sock.sendMessage(chatId, {
-                    video: videoBuffer,
-                    mimetype: 'video/mp4',
-                    fileName: filename,
-                    caption: `*${title}*`
-                }, { quoted: message });
-            }
-            
-        } catch (conversionError) {
-            console.error('[VIDEO] conversion failed, trying original file:', conversionError?.message || conversionError);
-            try {
-                if (!fs.existsSync(tempFile)) {
-                    await sock.sendMessage(chatId, { text: 'Temp file missing.' }, { quoted: message });
-                    return;
-                }
-                const origStats = fs.statSync(tempFile);
-                const maxSize = 62 * 1024 * 1024; // 62MB
-                if (origStats.size > maxSize) {
-                    await sock.sendMessage(chatId, { text: 'Video is too large to send on WhatsApp.' }, { quoted: message });
-                    return;
-                }
-            } catch {}
-            // Try sending the original file
-            try {
-                await sock.sendMessage(chatId, {
-                    video: { url: tempFile },
-                    mimetype: 'video/mp4',
-                    fileName: filename,
-                    caption: `*${title}*`
-                }, { quoted: message });
-            } catch (sendErr2) {
-                console.error('[VIDEO] send original url failed, trying buffer:', sendErr2?.message || sendErr2);
-                const videoBuffer = fs.readFileSync(tempFile);
-                await sock.sendMessage(chatId, {
-                    video: videoBuffer,
-                    mimetype: 'video/mp4',
-                    fileName: filename,
-                    caption: `*${title}*`
-                }, { quoted: message });
-            }
+        if (!res.data || !res.data.result || !res.data.result.download) {
+            throw new Error('Izumi API failed to return a valid video link.');
         }
 
-        // Clean up temp files
-        setTimeout(() => {
-            try {
-                if (fs.existsSync(tempFile)) {
-                    fs.unlinkSync(tempFile);
-                }
-                if (fs.existsSync(convertedFile)) {
-                    fs.unlinkSync(convertedFile);
-                }
-            } catch (cleanupErr) {
-                console.error('[VIDEO] cleanup error:', cleanupErr?.message || cleanupErr);
-            }
-        }, 3000);
+        const videoData = res.data.result;
+
+        // Send video directly using the download URL
+        await sock.sendMessage(chatId, {
+            video: { url: videoData.download },
+            mimetype: 'video/mp4',
+            fileName: `${videoData.title || videoTitle || 'video'}.mp4`,
+            caption: `*${videoData.title || videoTitle || 'Video'}*\n\n> *_Downloaded by Knight Bot MD_*`
+        }, { quoted: message });
 
 
     } catch (error) {
