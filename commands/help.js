@@ -8,6 +8,8 @@ async function helpCommand(sock, chatId, message) {
    *🤖 ${settings.botName || 'KnightBot-MD'}*  
    Version: *${settings.version || '2.0.5'}*
    by ${settings.botOwner || 'Mr Navi'}
+   Version: *${settings.version || '3.0.0'}*
+   by ${settings.botOwner || 'Mr Unique Hacker'}
    YT : ${global.ytch}
 ╚═══════════════════╝
 
@@ -82,6 +84,8 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .anticall <on/off>
 ║ ➤ .pmblocker <on/off/status>
 ║ ➤ .pmblocker setmsg <text>
+║ ➤ .setmention <reply to msg/media>
+║ ➤ .mention <on/off>
 ╚═══════════════════╝
 
 ╔═══════════════════╗
