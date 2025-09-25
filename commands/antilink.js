@@ -87,10 +87,15 @@ async function handleLinkDetection(sock, chatId, message, userMessage, senderId)
     let shouldDelete = false;
 
     const linkPatterns = {
-        whatsappGroup: /chat\.whatsapp\.com\/[A-Za-z0-9]{20,}/,
-        whatsappChannel: /wa\.me\/channel\/[A-Za-z0-9]{20,}/,
-        telegram: /t\.me\/[A-Za-z0-9_]+/,
-        allLinks: /https?:\/\/[^\s]+/,
+        whatsappGroup: /chat\.whatsapp\.com\/[A-Za-z0-9]{20,}/i,
+        whatsappChannel: /wa\.me\/channel\/[A-Za-z0-9]{20,}/i,
+        telegram: /t\.me\/[A-Za-z0-9_]+/i,
+        // Matches:
+        // - Full URLs with protocol (http/https)
+        // - URLs starting with www.
+        // - Bare domains anywhere in the string, even when attached to text
+        //   e.g., "helloinstagram.comworld" or "testhttps://x.com"
+        allLinks: /https?:\/\/\S+|www\.\S+|(?:[a-z0-9-]+\.)+[a-z]{2,}(?:\/\S*)?/i,
     };
 
     // Detect WhatsApp Group links
