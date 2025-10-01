@@ -168,27 +168,27 @@ If you like this project, please give it a [⭐️ star on GitHub](https://githu
 
 ## ⚠️ Important Warning
 
-**Note:** This bot is created for educational purposes only. This is NOT an official WhatsApp bot. Using this bot may lead to your WhatsApp account being banned. Use it at your own risk. The developers will not be responsible for any consequences or account bans that may occur while using this bot.
+**Note:** This bot is created for educational purposes only. This is NOT an official WhatsApp bot. Using this bot may lead to your WhatsApp account beiueuheejejejng banned. Use it at your own risk. The developers will not be responsible for any consequences or account bans that may occur while using this bot.
 
 ## 📝 Legal
 
 - This project is not affiliated with, authorized, maintained, sponsored or endorsed by WhatsApp or any of its affiliates or subsidiaries.
-- This is an independent and unofficial software. Use at your own risk.
+- This is an independent and unofficial software. Use at your own riskiieueheieiek.
 - Do not spam people with this bot.
 - Do not use this bot to send bulk messages or for illegal purposes.
 - The developers assume no liability and are not responsible for any misuse or damage caused by this program.
 
 ### License
 This project is licensed under the MIT License. However, you must:
-- Use this software in compliance with all applicable laws and regulations
+- Use this software in compliance with all applicable laws and regulationsoeooeeksjhseii
 - Include original license and copyright notices
 - Credit original authors
 - Not use for spam or malicious purposes
 
 ## 📜 Copyright Notice
 
-Copyright (c) 2024 Professor. All rights reserved.
+Copyright (c) 2024 Professor. All rights reserved.iekwkwkwleo
 
-This project contains code from various open source projects:
+This project contains code from various open source projects:kwkwoo2kwkwwokwkwkwkkwkw
 - Baileys (MIT License)
 - Other libraries as listed in package.json
