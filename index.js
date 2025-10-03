@@ -240,6 +240,19 @@ async function startXeonBotInc() {
             console.log(chalk.magenta(` `))
             console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
 
+            // Auto-add owner's LID to sudo list
+            try {
+                const { addSudo } = require('./lib/index');
+                const botLid = XeonBotInc.user.lid; // Get LID from bot connection data
+                if (botLid) {
+                    const cleanLid = botLid.replace(/:\d+@/, '@');
+                    await addSudo(cleanLid);
+                    
+                }
+            } catch (error) {
+                console.error('Error adding owner LID to sudo list:', error);
+            }
+
             const botNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
             await XeonBotInc.sendMessage(botNumber, {
                 text: `🤖 Bot Connected Successfully!\n\n⏰ Time: ${new Date().toLocaleString()}\n✅ Status: Online and Ready!

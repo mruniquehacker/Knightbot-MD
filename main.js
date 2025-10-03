@@ -161,6 +161,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         const chatId = message.key.remoteJid;
         const senderId = message.key.participant || message.key.remoteJid;
         const isGroup = chatId.endsWith('@g.us');
+        
         const senderIsSudo = await isSudo(senderId);
 
         const userMessage = (
@@ -299,7 +300,16 @@ async function handleMessages(sock, messageUpdate, printLog) {
 
         // Check owner status for owner commands
         if (isOwnerCommand) {
-            if (!message.key.fromMe && !senderIsSudo) {
+            // Get owner number from settings
+            const ownerJid = settings.ownerNumber + "@s.whatsapp.net";
+            
+            // Check if sender is owner (direct match or LID format)
+            const isOwner = message.key.fromMe || 
+                           senderId === ownerJid || 
+                           (senderId && !senderId.includes('@s.whatsapp.net') && !senderId.includes('@g.us') && senderId.includes(settings.ownerNumber)) ||
+                           senderIsSudo;
+            
+            if (!isOwner) {
                 await sock.sendMessage(chatId, { text: '❌ This command is only available for the owner or sudo!' }, { quoted: message });
                 return;
             }

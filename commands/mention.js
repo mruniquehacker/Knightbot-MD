@@ -20,9 +20,20 @@ async function ensureDefaultSticker(state) {
 	try {
 		const assetPath = path.join(__dirname, '..', state.assetPath);
 		if (state.assetPath.endsWith('mention_default.webp') && !fs.existsSync(assetPath)) {
-			const url = 'https://o.uguu.se/KHSyEtdc.webp';
-			const res = await axios.get(url, { responseType: 'arraybuffer' });
-			fs.writeFileSync(assetPath, Buffer.from(res.data));
+			// Create a simple default sticker instead of downloading from external URL
+			const defaultStickerPath = path.join(__dirname, '..', 'assets', 'stickintro.webp');
+			if (fs.existsSync(defaultStickerPath)) {
+				// Copy existing sticker as default
+				fs.copyFileSync(defaultStickerPath, assetPath);
+			} else {
+				// Create assets directory if it doesn't exist
+				const assetsDir = path.dirname(assetPath);
+				if (!fs.existsSync(assetsDir)) {
+					fs.mkdirSync(assetsDir, { recursive: true });
+				}
+				// Create a simple text file as fallback
+				fs.writeFileSync(assetPath.replace('.webp', '.txt'), 'Default mention sticker not available');
+			}
 		}
 	} catch (e) {
 		console.warn('ensureDefaultSticker failed:', e?.message || e);
