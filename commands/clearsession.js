@@ -16,13 +16,8 @@ const channelInfo = {
 
 async function clearSessionCommand(sock, chatId, msg) {
     try {
-        // Check if sender is owner or sudo
-        const { isSudo } = require('../lib/index');
-        const senderId = msg.key.participant || msg.key.remoteJid;
-        const senderIsSudo = await isSudo(senderId);
-        const isOwner = msg.key.fromMe || senderIsSudo;
-        
-        if (!isOwner) {
+        // Check if sender is owner
+        if (!msg.key.fromMe) {
             await sock.sendMessage(chatId, { 
                 text: '❌ This command can only be used by the owner!',
                 ...channelInfo

@@ -20,13 +20,8 @@ function initConfig() {
 // Toggle autoread feature
 async function autoreadCommand(sock, chatId, message) {
     try {
-        // Check if sender is the owner or sudo
-        const { isSudo } = require('../lib/index');
-        const senderId = message.key.participant || message.key.remoteJid;
-        const senderIsSudo = await isSudo(senderId);
-        const isOwner = message.key.fromMe || senderIsSudo;
-        
-        if (!isOwner) {
+        // Check if sender is the owner (bot itself)
+        if (!message.key.fromMe) {
             await sock.sendMessage(chatId, {
                 text: '❌ This command is only available for the owner!',
                 contextInfo: {
