@@ -18,27 +18,51 @@ async function deleteCommand(sock, chatId, message, senderId) {
         // Determine target user and count
         const text = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
         const parts = text.trim().split(/\s+/);
-        let countArg = 1;
+        let countArg = null;
+        
+        // Check if a number is provided
         if (parts.length > 1) {
             const maybeNum = parseInt(parts[1], 10);
-            if (!isNaN(maybeNum) && maybeNum > 0) countArg = Math.min(maybeNum, 50);
+            if (!isNaN(maybeNum) && maybeNum > 0) {
+                countArg = Math.min(maybeNum, 50);
+            }
+        }
+        
+        // Check if user is replying to a message
+        const ctxInfo = message.message?.extendedTextMessage?.contextInfo || {};
+        const repliedParticipant = ctxInfo.participant || null;
+        const mentioned = Array.isArray(ctxInfo.mentionedJid) && ctxInfo.mentionedJid.length > 0 ? ctxInfo.mentionedJid[0] : null;
+        
+        // If no number provided but replying to a message, default to 1
+        if (countArg === null && repliedParticipant) {
+            countArg = 1;
+        }
+        // If no number provided and not replying/mentioning, show usage message
+        else if (countArg === null && !repliedParticipant && !mentioned) {
+            await sock.sendMessage(chatId, { 
+                text: '❌ Please specify the number of messages to delete.\n\nUsage:\n• `.del 5` - Delete last 5 messages from group\n• `.del 3 @user` - Delete last 3 messages from @user\n• `.del 2` (reply to message) - Delete last 2 messages from replied user' 
+            }, { quoted: message });
+            return;
+        }
+        // If no number provided but mentioning a user, default to 1
+        else if (countArg === null && mentioned) {
+            countArg = 1;
         }
 
-        const ctxInfo = message.message?.extendedTextMessage?.contextInfo || {};
-        const mentioned = Array.isArray(ctxInfo.mentionedJid) && ctxInfo.mentionedJid.length > 0 ? ctxInfo.mentionedJid[0] : null;
-        const repliedParticipant = ctxInfo.participant || null;
 
-        // Determine target user: replied > mentioned; if neither, do not proceed
+        // Determine target user: replied > mentioned; if neither, delete last N messages from group
         let targetUser = null;
         let repliedMsgId = null;
+        let deleteGroupMessages = false;
+        
         if (repliedParticipant && ctxInfo.stanzaId) {
             targetUser = repliedParticipant;
             repliedMsgId = ctxInfo.stanzaId;
         } else if (mentioned) {
             targetUser = mentioned;
         } else {
-            await sock.sendMessage(chatId, { text: 'Please reply to a user\'s message or mention a user to delete their recent messages.' }, { quoted: message });
-            return;
+            // No user mentioned or replied to - delete last N messages from group
+            deleteGroupMessages = true;
         }
 
         // Gather last N messages from targetUser in this chat
@@ -47,49 +71,71 @@ async function deleteCommand(sock, chatId, message, senderId) {
         const toDelete = [];
         const seenIds = new Set();
 
-        // If replying, prioritize deleting the exact replied message first (counts toward N)
-        if (repliedMsgId) {
-            const repliedInStore = chatMessages.find(m => m.key.id === repliedMsgId && (m.key.participant || m.key.remoteJid) === targetUser);
-            if (repliedInStore) {
-                toDelete.push(repliedInStore);
-                seenIds.add(repliedInStore.key.id);
-            } else {
-                // If not found in store, still attempt delete directly
-                try {
-                    await sock.sendMessage(chatId, {
-                        delete: {
-                            remoteJid: chatId,
-                            fromMe: false,
-                            id: repliedMsgId,
-                            participant: repliedParticipant
-                        }
-                    });
-                    // Count this as one deleted and reduce required count
-                    countArg = Math.max(0, countArg - 1);
-                } catch {}
+        if (deleteGroupMessages) {
+            // Delete last N messages from group (any user)
+            for (let i = chatMessages.length - 1; i >= 0 && toDelete.length < countArg; i--) {
+                const m = chatMessages[i];
+                if (!seenIds.has(m.key.id)) {
+                    // skip protocol/system messages, bot's own messages, and the current command message
+                    if (!m.message?.protocolMessage && 
+                        !m.key.fromMe && 
+                        m.key.id !== message.key.id) {
+                        toDelete.push(m);
+                        seenIds.add(m.key.id);
+                    }
+                }
             }
-        }
-        for (let i = chatMessages.length - 1; i >= 0 && toDelete.length < countArg; i--) {
-            const m = chatMessages[i];
-            const participant = m.key.participant || m.key.remoteJid;
-            if (participant === targetUser && !seenIds.has(m.key.id)) {
-                // skip protocol/system messages
-                if (!m.message?.protocolMessage) {
-                    toDelete.push(m);
-                    seenIds.add(m.key.id);
+        } else {
+            // Original logic for specific user
+            // If replying, prioritize deleting the exact replied message first (counts toward N)
+            if (repliedMsgId) {
+                const repliedInStore = chatMessages.find(m => m.key.id === repliedMsgId && (m.key.participant || m.key.remoteJid) === targetUser);
+                if (repliedInStore) {
+                    toDelete.push(repliedInStore);
+                    seenIds.add(repliedInStore.key.id);
+                } else {
+                    // If not found in store, still attempt delete directly
+                    try {
+                        await sock.sendMessage(chatId, {
+                            delete: {
+                                remoteJid: chatId,
+                                fromMe: false,
+                                id: repliedMsgId,
+                                participant: repliedParticipant
+                            }
+                        });
+                        // Count this as one deleted and reduce required count
+                        countArg = Math.max(0, countArg - 1);
+                    } catch {}
+                }
+            }
+            for (let i = chatMessages.length - 1; i >= 0 && toDelete.length < countArg; i--) {
+                const m = chatMessages[i];
+                const participant = m.key.participant || m.key.remoteJid;
+                if (participant === targetUser && !seenIds.has(m.key.id)) {
+                    // skip protocol/system messages
+                    if (!m.message?.protocolMessage) {
+                        toDelete.push(m);
+                        seenIds.add(m.key.id);
+                    }
                 }
             }
         }
 
         if (toDelete.length === 0) {
-            await sock.sendMessage(chatId, { text: 'No recent messages found for the target user.' }, { quoted: message });
+            const errorMsg = deleteGroupMessages 
+                ? 'No recent messages found in the group to delete.' 
+                : 'No recent messages found for the target user.';
+            await sock.sendMessage(chatId, { text: errorMsg }, { quoted: message });
             return;
         }
 
         // Delete sequentially with small delay
         for (const m of toDelete) {
             try {
-                const msgParticipant = m.key.participant || targetUser;
+                const msgParticipant = deleteGroupMessages 
+                    ? (m.key.participant || m.key.remoteJid) 
+                    : (m.key.participant || targetUser);
                 await sock.sendMessage(chatId, {
                     delete: {
                         remoteJid: chatId,
@@ -104,7 +150,7 @@ async function deleteCommand(sock, chatId, message, senderId) {
             }
         }
 
-       // await sock.sendMessage(chatId, { text: `Deleted ${toDelete.length} message(s) from @${(targetUser||'').split('@')[0]}`, mentions: [targetUser] }, { quoted: message });
+    
     } catch (err) {
         await sock.sendMessage(chatId, { text: 'Failed to delete messages.' }, { quoted: message });
     }
