@@ -6,9 +6,15 @@ const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
 function loadState() {
 	try {
 		const raw = fs.readFileSync(path.join(__dirname, '..', 'data', 'mention.json'), 'utf8');
-		return JSON.parse(raw);
+        const state = JSON.parse(raw);
+        // If using the built-in default asset, treat it as no custom asset and default to text "Hi"
+        if (state && typeof state.assetPath === 'string' && state.assetPath.endsWith('assets/mention_default.webp')) {
+            return { enabled: !!state.enabled, assetPath: '', type: 'text' };
+        }
+        return state;
 	} catch {
-		return { enabled: false, assetPath: 'assets/mention_default.webp', type: 'sticker' };
+        // Default: disabled; when enabled without custom asset, reply as plain text
+        return { enabled: false, assetPath: '', type: 'text' };
 	}
 }
 
@@ -77,34 +83,68 @@ async function handleMentionDetection(sock, chatId, message) {
 			}
 		}
 
-		if (!mentioned.length) return;
-		const isBotMentioned = mentioned.some(j => botJids.includes(j));
-		if (!isBotMentioned) return;
+		// Also capture direct mentionedJid arrays on messages (some clients/placeholders set it here)
+		const directMentionLists = [
+			msg.extendedTextMessage?.mentionedJid,
+			msg.mentionedJid
+		].filter(Array.isArray);
+		for (const arr of directMentionLists) mentioned = mentioned.concat(arr);
 
-		// Send custom asset or default sticker
-		const assetPath = path.join(__dirname, '..', state.assetPath);
-		if (state.type === 'sticker' && fs.existsSync(assetPath)) {
-			await sock.sendMessage(chatId, { sticker: fs.readFileSync(assetPath) }, { quoted: message });
+		if (!mentioned.length) {
+			// Heuristic fallback: detect if the text includes the bot's number as a mention-like token
+			const rawText = (
+				msg.conversation ||
+				msg.extendedTextMessage?.text ||
+				msg.imageMessage?.caption ||
+				msg.videoMessage?.caption ||
+				''
+			).toString();
+			if (rawText) {
+				const safeBot = botNum.replace(/[-\s]/g, '');
+				const re = new RegExp(`@?${safeBot}\b`);
+				if (!re.test(rawText.replace(/\s+/g, ''))) return;
+			} else {
+				return;
+			}
+		}
+		const isBotMentioned = mentioned.some(j => botJids.includes(j));
+		if (!isBotMentioned) {
+			// If no formal mention but heuristic matched, proceed silently
+		}
+
+		// Send custom asset or default fallback
+		if (!state.assetPath) {
+			await sock.sendMessage(chatId, { text: 'Hi' }, { quoted: message });
 			return;
 		}
-		if (fs.existsSync(assetPath)) {
-			const payload = {};
-			if (state.type === 'image') payload.image = fs.readFileSync(assetPath);
-			else if (state.type === 'video') {
-				payload.video = fs.readFileSync(assetPath);
-				if (state.gifPlayback) payload.gifPlayback = true;
-			}
-			else if (state.type === 'audio') {
-				payload.audio = fs.readFileSync(assetPath);
-				if (state.mimetype) payload.mimetype = state.mimetype; else payload.mimetype = 'audio/mpeg';
-				if (typeof state.ptt === 'boolean') payload.ptt = state.ptt;
-			}
-			else if (state.type === 'text') payload.text = fs.readFileSync(assetPath, 'utf8');
-			else payload.text = 'Hi';
-			await sock.sendMessage(chatId, payload, { quoted: message });
-		} else {
-			await sock.sendMessage(chatId, { text: 'Hi' }, { quoted: message });
-		}
+		const assetPath = path.join(__dirname, '..', state.assetPath);
+        // If configured asset does not exist, send plain text "Hi" as a safe default
+        if (!fs.existsSync(assetPath)) {
+            await sock.sendMessage(chatId, { text: 'Hi' }, { quoted: message });
+            return;
+        }
+        try {
+            if (state.type === 'sticker') {
+                await sock.sendMessage(chatId, { sticker: fs.readFileSync(assetPath) }, { quoted: message });
+                return;
+            }
+            const payload = {};
+            if (state.type === 'image') payload.image = fs.readFileSync(assetPath);
+            else if (state.type === 'video') {
+                payload.video = fs.readFileSync(assetPath);
+                if (state.gifPlayback) payload.gifPlayback = true;
+            }
+            else if (state.type === 'audio') {
+                payload.audio = fs.readFileSync(assetPath);
+                if (state.mimetype) payload.mimetype = state.mimetype; else payload.mimetype = 'audio/mpeg';
+                if (typeof state.ptt === 'boolean') payload.ptt = state.ptt;
+            }
+            else if (state.type === 'text') payload.text = fs.readFileSync(assetPath, 'utf8');
+            else payload.text = 'Hi';
+            await sock.sendMessage(chatId, payload, { quoted: message });
+        } catch (e) {
+            await sock.sendMessage(chatId, { text: 'Hi' }, { quoted: message });
+        }
 	} catch (err) {
 		console.error('handleMentionDetection error:', err);
 	}

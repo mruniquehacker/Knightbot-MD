@@ -225,7 +225,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         // Check for bad words FIRST, before ANY other processing
         if (isGroup && userMessage) {
             await handleBadwordDetection(sock, chatId, message, userMessage, senderId);
-            
+
             await Antilink(message, sock);
         }
 
@@ -340,9 +340,21 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 await unmuteCommand(sock, chatId, senderId);
                 break;
             case userMessage.startsWith('.ban'):
+                if (!isGroup) {
+                    if (!message.key.fromMe && !senderIsSudo) {
+                        await sock.sendMessage(chatId, { text: 'Only owner/sudo can use .ban in private chat.' }, { quoted: message });
+                        break;
+                    }
+                }
                 await banCommand(sock, chatId, message);
                 break;
             case userMessage.startsWith('.unban'):
+                if (!isGroup) {
+                    if (!message.key.fromMe && !senderIsSudo) {
+                        await sock.sendMessage(chatId, { text: 'Only owner/sudo can use .unban in private chat.' }, { quoted: message });
+                        break;
+                    }
+                }
                 await unbanCommand(sock, chatId, message);
                 break;
             case userMessage === '.help' || userMessage === '.menu' || userMessage === '.bot' || userMessage === '.list':
@@ -448,12 +460,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage === '.owner':
                 await ownerCommand(sock, chatId);
                 break;
-            case userMessage === '.tagall':
-                if (isSenderAdmin || message.key.fromMe) {
-                    await tagAllCommand(sock, chatId, senderId, message);
-                } else {
-                    await sock.sendMessage(chatId, { text: 'Sorry, only group admins can use the .tagall command.', ...channelInfo }, { quoted: message });
-                }
+             case userMessage === '.tagall':
+                await tagAllCommand(sock, chatId, senderId, message);
                 break;
             case userMessage === '.tagnotadmin':
                 await tagNotAdminCommand(sock, chatId, senderId, message);
@@ -703,9 +711,13 @@ async function handleMessages(sock, messageUpdate, printLog) {
                 const match = userMessage.slice(8).trim();
                 await handleChatbotCommand(sock, chatId, message, match);
                 break;
-            case userMessage.startsWith('.take'):
-                const takeArgs = rawText.slice(5).trim().split(' ');
-                await takeCommand(sock, chatId, message, takeArgs);
+            case userMessage.startsWith('.take') || userMessage.startsWith('.steal'):
+                {
+                    const isSteal = userMessage.startsWith('.steal');
+                    const sliceLen = isSteal ? 6 : 5; // '.steal' vs '.take'
+                    const takeArgs = rawText.slice(sliceLen).trim().split(' ');
+                    await takeCommand(sock, chatId, message, takeArgs);
+                }
                 break;
             case userMessage === '.flirt':
                 await flirtCommand(sock, chatId, message);
