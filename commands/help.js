@@ -7,7 +7,7 @@ async function helpCommand(sock, chatId, message) {
 ╔═══════════════════╗
    *🤖 ${settings.botName || 'KnightBot-MD'}*  
    Version: *${settings.version || '3.0.0'}*
-   by ${settings.botOwner || 'Mr Unique Hacker'}
+   by ${settings.botOwner || 'Mr Navi'}
    YT : ${global.ytch}
 ╚═══════════════════╝
 
@@ -240,7 +240,7 @@ Join our channel for updates:`;
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
+                        newsletterJid: '120363421047540687@newsletter',
                         newsletterName: 'KnightBot MD',
                         serverMessageId: -1
                     }
@@ -254,8 +254,8 @@ Join our channel for updates:`;
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD by Mr Unique Hacker',
+                        newsletterJid: '120363421047540687@newsletter',
+                        newsletterName: 'KnightBot MD by Mr RC Jestor',
                         serverMessageId: -1
                     } 
                 }
