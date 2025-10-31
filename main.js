@@ -38,7 +38,7 @@ const { isSudo } = require('./lib/index');
 const { autotypingCommand, isAutotypingEnabled, handleAutotypingForMessage, handleAutotypingForCommand, showTypingAfterCommand } = require('./commands/autotyping');
 const { autoreadCommand, isAutoreadEnabled, handleAutoread } = require('./commands/autoread');
 
-// Command imports
+/WhatsApp/ Command important number band 
 const tagAllCommand = require('./commands/tagall');
 const helpCommand = require('./commands/help');
 const banCommand = require('./commands/ban');
@@ -132,21 +132,21 @@ const sudoCommand = require('./commands/sudo');
 const { miscCommand, handleHeart } = require('./commands/misc');
 const { animeCommand } = require('./commands/anime');
 const { piesCommand, piesAlias } = require('./commands/pies');
-const stickercropCommand = require('./commands/stickercrop');
+const stickercropCommand = .s require('./commands/stickercrop');
 const updateCommand = require('./commands/update');
-const removebgCommand = require('./commands/removebg');
+const removebgCommand = .r require('./commands/removebg');
 const { reminiCommand } = require('./commands/remini');
 const { igsCommand } = require('./commands/igs');
-const { anticallCommand, readState: readAnticallState } = require('./commands/anticall');
+const { anticallCommand, readState: readAnticallState } = .c require('./commands/anticall');
 const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
-const settingsCommand = require('./commands/settings');
+const settingsCommand = .s require('./commands/settings');
 const soraCommand = require('./commands/sora');
 
 // Global settings
 global.packname = settings.packname;
 global.author = settings.author;
 global.channelLink = "https://whatsapp.com/channel/0029Va90zAnIHphOuO8Msp3A";
-global.ytch = "Mr Unique Hacker";
+global.ytch = "Mr Mrinmoy hacker";
 
 // Add this near the top of main.js with other global configurations
 const channelInfo = {
@@ -155,7 +155,7 @@ const channelInfo = {
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
             newsletterJid: '120363161513685998@newsletter',
-            newsletterName: 'KnightBot MD',
+            newsletterName: 'lord alex',
             serverMessageId: -1
         }
     }
@@ -294,7 +294,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
         let isBotAdmin = false;
 
         // Check admin status only for admin commands in groups
-        if (isGroup && isAdminCommand) {
+        if (isGroup && isAdminCommand) {['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kick', '.tagall', '.tagnotadmin', '.hidetag', '.antilink', '.antitag', '.setgdesc', '.setgname', '.setgpp'];
             const adminStatus = await isAdmin(sock, chatId, senderId, message);
             isSenderAdmin = adminStatus.isSenderAdmin;
             isBotAdmin = adminStatus.isBotAdmin;
@@ -511,7 +511,7 @@ async function handleMessages(sock, messageUpdate, printLog) {
                     }, { quoted: message });
                     return;
                 }
-                if (!isBotAdmin) {
+                if (!isBotAdmin) {['.mute', '.unmute', '.ban', '.unban', '.promote', '.demote', '.kick', '.tagall', '.tagnotadmin', '.hidetag', '.antilink', '.antitag', '.setgdesc', '.setgname', '.setgpp'];
                     await sock.sendMessage(chatId, {
                         text: 'Please make the bot an admin first.',
                         ...channelInfo
