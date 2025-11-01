@@ -37,94 +37,133 @@ async function facebookCommand(sock, chatId, message) {
             // ignore resolution errors; use original url
         }
 
-        // Helper to call API with retries and variants
+        // Use only Siputzx API
         async function fetchFromApi(u) {
-            const apiUrl = `https://api.princetechn.com/api/download/facebook?apikey=prince&url=${encodeURIComponent(u)}`;
-            return axios.get(apiUrl, {
-                timeout: 40000,
-                headers: {
-                    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36',
-                    'Accept': 'application/json, text/plain, */*'
-                },
-                maxRedirects: 5,
-                validateStatus: s => s >= 200 && s < 500
-            });
+            const apiUrl = `https://api.siputzx.my.id/api/d/facebook?url=${encodeURIComponent(u)}`;
+            
+            try {
+                const response = await axios.get(apiUrl, {
+                    timeout: 20000,
+                    headers: {
+                        'accept': '*/*',
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+                    },
+                    maxRedirects: 5,
+                    validateStatus: s => s >= 200 && s < 500
+                });
+                
+                if (response.data) {
+                    return { response, apiName: 'Siputzx API' };
+                }
+            } catch (error) {
+                console.error(`Siputzx API failed: ${error.message}`);
+            }
+            throw new Error('Siputzx API failed');
         }
 
         // Try resolved URL, then fallback to original URL
-        let response;
+        let apiResult;
         try {
-            response = await fetchFromApi(resolvedUrl);
-            if (!response || response.status >= 400 || !response.data) throw new Error('bad');
+            apiResult = await fetchFromApi(resolvedUrl);
         } catch {
-            response = await fetchFromApi(url);
+            apiResult = await fetchFromApi(url);
         }
 
+        const response = apiResult.response;
+        const apiName = apiResult.apiName;
         const data = response.data;
 
-        if (!data || data.status !== 200 || !data.success || !data.result) {
-            return await sock.sendMessage(chatId, { 
-                text: 'Sorry the API did not return a valid response. Please try again later!'
-            }, { quoted: message });
-        }
+        let fbvid = null;
+        let title = null;
 
-        const fbvid = data.result.hd_video || data.result.sd_video;
+        // Handle Siputzx API response format
+        if (data && data.status && data.data && Array.isArray(data.data.data)) {
+            // Find HD quality first, then SD
+            const hdVideo = data.data.data.find(item => item.resolution === 'HD' && item.format === 'mp4');
+            const sdVideo = data.data.data.find(item => item.resolution === 'SD' && item.format === 'mp4');
+            
+            fbvid = hdVideo?.url || sdVideo?.url;
+            title = data.data.title || "Facebook Video";
+        }
 
         if (!fbvid) {
             return await sock.sendMessage(chatId, { 
-                text: 'Wrong Facebook data. Please ensure the video exists.'
+                text: '❌ Failed to get video URL from Facebook.\n\nPossible reasons:\n• Video is private or deleted\n• Link is invalid\n• Video is not available for download\n\nPlease try a different Facebook video link.'
             }, { quoted: message });
         }
 
-        // Create temp directory if it doesn't exist
-        const tmpDir = path.join(process.cwd(), 'tmp');
-        if (!fs.existsSync(tmpDir)) {
-            fs.mkdirSync(tmpDir, { recursive: true });
-        }
-
-        // Generate temp file path
-        const tempFile = path.join(tmpDir, `fb_${Date.now()}.mp4`);
-
-        // Download the video
-        const videoResponse = await axios({
-            method: 'GET',
-            url: fbvid,
-            responseType: 'stream',
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-                'Accept': 'video/mp4,video/*;q=0.9,*/*;q=0.8',
-                'Accept-Language': 'en-US,en;q=0.5',
-                'Range': 'bytes=0-',
-                'Connection': 'keep-alive',
-                'Referer': 'https://www.facebook.com/'
-            }
-        });
-
-        const writer = fs.createWriteStream(tempFile);
-        videoResponse.data.pipe(writer);
-
-        await new Promise((resolve, reject) => {
-            writer.on('finish', resolve);
-            writer.on('error', reject);
-        });
-
-        // Check if file was downloaded successfully
-        if (!fs.existsSync(tempFile) || fs.statSync(tempFile).size === 0) {
-            throw new Error('Failed to download video');
-        }
-
-        // Send the video
-        await sock.sendMessage(chatId, {
-            video: { url: tempFile },
-            mimetype: "video/mp4",
-            caption: "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗞𝗡𝗜𝗚𝗛𝗧-𝗕𝗢𝗧"
-        }, { quoted: message });
-
-        // Clean up temp file
+        // Try URL method first (more reliable)
         try {
-            fs.unlinkSync(tempFile);
-        } catch (err) {
-            console.error('Error cleaning up temp file:', err);
+            const caption = title ? `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗞𝗡𝗜𝗚𝗛𝗧-𝗕𝗢𝗧\n\n📝 Title: ${title}` : "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗞𝗡𝗜𝗚𝗛𝗧-𝗕𝗢𝗧";
+            
+            await sock.sendMessage(chatId, {
+                video: { url: fbvid },
+                mimetype: "video/mp4",
+                caption: caption
+            }, { quoted: message });
+            
+            return;
+        } catch (urlError) {
+            console.error(`URL method failed: ${urlError.message}`);
+            
+            // Fallback to buffer method
+            try {
+                // Create temp directory if it doesn't exist
+                const tmpDir = path.join(process.cwd(), 'tmp');
+                if (!fs.existsSync(tmpDir)) {
+                    fs.mkdirSync(tmpDir, { recursive: true });
+                }
+
+                // Generate temp file path
+                const tempFile = path.join(tmpDir, `fb_${Date.now()}.mp4`);
+
+                // Download the video
+                const videoResponse = await axios({
+                    method: 'GET',
+                    url: fbvid,
+                    responseType: 'stream',
+                    timeout: 60000,
+                    headers: {
+                        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                        'Accept': 'video/mp4,video/*;q=0.9,*/*;q=0.8',
+                        'Accept-Language': 'en-US,en;q=0.5',
+                        'Referer': 'https://www.facebook.com/'
+                    }
+                });
+
+                const writer = fs.createWriteStream(tempFile);
+                videoResponse.data.pipe(writer);
+
+                await new Promise((resolve, reject) => {
+                    writer.on('finish', resolve);
+                    writer.on('error', reject);
+                });
+
+                // Check if file was downloaded successfully
+                if (!fs.existsSync(tempFile) || fs.statSync(tempFile).size === 0) {
+                    throw new Error('Failed to download video');
+                }
+
+                // Send the video
+                const caption = title ? `𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗞𝗡𝗜𝗚𝗛𝗧-𝗕𝗢𝗧\n\n📝 Title: ${title}` : "𝗗𝗢𝗪𝗡𝗟𝗢𝗔𝗗𝗘𝗗 𝗕𝗬 𝗞𝗡𝗜𝗚𝗛𝗧-𝗕𝗢𝗧";
+                
+                await sock.sendMessage(chatId, {
+                    video: { url: tempFile },
+                    mimetype: "video/mp4",
+                    caption: caption
+                }, { quoted: message });
+
+                // Clean up temp file
+                try {
+                    fs.unlinkSync(tempFile);
+                } catch (err) {
+                    console.error('Error cleaning up temp file:', err);
+                }
+                return;
+            } catch (bufferError) {
+                console.error(`Buffer method also failed: ${bufferError.message}`);
+                throw new Error('Both URL and buffer methods failed');
+            }
         }
 
     } catch (error) {

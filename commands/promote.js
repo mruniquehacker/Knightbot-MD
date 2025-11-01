@@ -51,23 +51,27 @@ async function promoteCommand(sock, chatId, mentionedJids, message) {
 // Function to handle automatic promotion detection
 async function handlePromotionEvent(sock, groupId, participants, author) {
     try {
-       /* console.log('Promotion Event Data:', {
-            groupId,
-            participants,
-            author
-        });*/
+        // Safety check for participants
+        if (!Array.isArray(participants) || participants.length === 0) {
+            return;
+        }
 
         // Get usernames for promoted participants
         const promotedUsernames = await Promise.all(participants.map(async jid => {
-            return `@${jid.split('@')[0]} `;
+            // Handle case where jid might be an object or not a string
+            const jidString = typeof jid === 'string' ? jid : (jid.id || jid.toString());
+            return `@${jidString.split('@')[0]} `;
         }));
 
         let promotedBy;
-        let mentionList = [...participants];
+        let mentionList = participants.map(jid => {
+            // Ensure all mentions are proper JID strings
+            return typeof jid === 'string' ? jid : (jid.id || jid.toString());
+        });
 
         if (author && author.length > 0) {
             // Ensure author has the correct format
-            const authorJid = author;
+            const authorJid = typeof author === 'string' ? author : (author.id || author.toString());
             promotedBy = `@${authorJid.split('@')[0]}`;
             mentionList.push(authorJid);
         } else {
