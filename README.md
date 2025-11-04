@@ -32,13 +32,7 @@ Click the button below to fork the Knight Bot repository to your GitHub account:
 
 ### Step 2: Get Pair Code
 
-Deploy the bot and easily connect it to your WhatsApp account by pair code. Click the button below to deploy the bot on Replit.
-
-<div align="center">
-  <a href="https://replit.com/@DGXeon/Xeon-PairCode?v=1" target="_blank">
-    <img src="https://img.shields.io/badge/GET%20PAIR%20CODE-Replit-success?style=for-the-badge" alt="Deploy on Replit"/>
-  </a>
-</div>
+Deploy the bot and easily connect it to your WhatsApp account by pair code. Click the button below to generate a pair code.
 
 <div align="center">
   <a href="https://knight-bot-paircode.onrender.com" target="_blank">
@@ -46,7 +40,7 @@ Deploy the bot and easily connect it to your WhatsApp account by pair code. Clic
   </a>
 </div>
 
-### After getting creds.json file, upload it to session folder
+> After getting `creds.json` file, upload it to the `session` folder.
 
 ---
 
@@ -63,12 +57,29 @@ For further customization and setup guidance, click the button below:
   </a>
 </div>
 
-### Deploy Now on Below Panel
+---
+
+### Deploy on VPS
+
+If you prefer a VPS deployment, here are recommended providers and a quick link:
+
 <div align="center">
-<a href="https://dashboard.katabump.com/auth/login#d6b7d6" target="_blank">
-  <img src="https://img.shields.io/badge/Katabump-D6B7D6?style=for-the-badge&logo=server&logoColor=black" alt="Katabump"/>
-</a>
+  <a href="https://client.petrosky.io/aff.php?aff=394" target="_blank">
+    <img src="https://img.shields.io/badge/petrosky%20VPS-0078E7?style=for-the-badge" alt="petrosky vps"/>
+  </a>
 </div>
+
+---
+
+### Deploy Now on Panel (Katabump)
+
+<div align="center">
+  <a href="https://dashboard.katabump.com/auth/login#d6b7d6" target="_blank">
+    <img src="https://img.shields.io/badge/Katabump-D6B7D6?style=for-the-badge&logo=server&logoColor=black" alt="Katabump"/>
+  </a>
+</div>
+
+---
 
 ### Join Us
 
@@ -149,44 +160,4 @@ Contributions, issues, and feature requests are welcome! Feel free to check the 
 
 ---
 
-## 🌟 Show your support
-
-If you like this project, please give it a [⭐️ star on GitHub](https://github.com/wijesuriya2017/Knightbot-MD)!
-
----
-
-## Credits
-
-- [Navida Wijesuriya](https://github.com/wijesuriya2017)
-- [Baileys](https://github.com/adiwajshing/Baileys)
-- [TechGod143](https://github.com/TechGod143) for pair code
-- [Dgxeon](https://github.com/Dgxeon) for pair code
-
----
-
-## ⚠️ Important Warning
-
-**Note:** This bot is created for educational purposes only. This is NOT an official WhatsApp bot. Using this bot may lead to your WhatsApp account being banned. Use it at your own risk. The developers will not be responsible for any consequences or account bans that may occur while using this bot.
-
-## 📝 Legal
-
-- This project is not affiliated with, authorized, maintained, sponsored or endorsed by WhatsApp or any of its affiliates or subsidiaries.
-- This is an independent and unofficial software. Use at your own risk.
-- Do not spam people with this bot.
-- Do not use this bot to send bulk messages or for illegal purposes.
-- The developers assume no liability and are not responsible for any misuse or damage caused by this program.
-
-### License
-This project is licensed under the MIT License. However, you must:
-- Use this software in compliance with all applicable laws and regulations  
-- Include original license and copyright notices  
-- Credit original authors  
-- Not use for spam or malicious purposes  
-
-## 📜 Copyright Notice
-
-Copyright (c) 2024 Navida Wijesuriya. All rights reserved.
-
-This project contains code from various open source projects:
-- Baileys (MIT License)
-- Other libraries as listed in package.json
+## 🌟 Show your suppor
