@@ -114,7 +114,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .stupid 
 ╚═══════════════════
 
-╔═══════════════════╗
+╔═══════════════════
  *Textmaker*:
 ║ ➤ .metallic 
 ║ ➤ .ice 
@@ -134,9 +134,9 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .blackpink 
 ║ ➤ .glitch 
 ║ ➤ .fire 
-╚═══════════════════╝
+╚═══════════════════
 
-╔═══════════════════╗
+╔═══════════════════
  *Dl*:
 ║ ➤ .play 
 ║ ➤ .song
@@ -145,16 +145,16 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .tiktok 
 ║ ➤ .video 
 ║ ➤ .ytmp4 
-╚═══════════════════╝
+╚═══════════════════
 
-╔═══════════════════╗
+╔═══════════════════
 *Github*
 ║ ➤ .git
 ║ ➤ .github
 ║ ➤ .sc
 ║ ➤ .script
 ║ ➤ .repo
-╚═══════════════════╝
+╚═══════════════════
 
 Join our channel for updates:`;
 
@@ -171,7 +171,7 @@ Join our channel for updates:`;
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
+                        newsletterJid: '',
                         newsletterName: 'KELIN MD',
                         serverMessageId: -1
                     }
