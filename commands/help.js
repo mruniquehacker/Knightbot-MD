@@ -5,13 +5,13 @@ const path = require('path');
 async function helpCommand(sock, chatId, message) {
     const helpMessage = `
 ╔═══════════════════╗
-   * ${settings.botName || 'KnightBot-MD'}*  
+   * ${settings.botName || 'KELIN'}*  
    The Crib Bot
-   by ${settings.botOwner || 'Mr Unique Hacker'}
+   by ${settings.botOwner || 'KELIN'}
    
 ╚═══════════════════╝
 
-*Available Commands:*
+*COMMANDS*
 
 ╔═══════════════════╗
  *Utility*:
