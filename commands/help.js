@@ -5,150 +5,150 @@ const path = require('path');
 async function helpCommand(sock, chatId, message) {
     const helpMessage = `
 ╔═══════════════════╗
-   *🤖 ${settings.botName || 'KnightBot-MD'}*  
-   Version: *${settings.version || '2.0.5'}*
+   * ${settings.botName || 'KnightBot-MD'}*  
+   The Crib Bot
    by ${settings.botOwner || 'Mr Unique Hacker'}
-   YT : ${global.ytch}
+   
 ╚═══════════════════╝
 
 *Available Commands:*
 
 ╔═══════════════════╗
 🌐 *General Commands*:
-║ ➤ .help or .menu
+║ ➤ .help
 ║ ➤ .ping
 ║ ➤ .alive
-║ ➤ .tts <text>
+║ ➤ .tts 
 ║ ➤ .owner
 ║ ➤ .joke
 ║ ➤ .quote
 ║ ➤ .fact
-║ ➤ .weather <city>
+║ ➤ .weather 
 ║ ➤ .news
-║ ➤ .attp <text>
-║ ➤ .lyrics <song_title>
-║ ➤ .8ball <question>
+║ ➤ .attp
+║ ➤ .lyrics 
+║ ➤ .8ball 
 ║ ➤ .groupinfo
-║ ➤ .staff or .admins 
+║ ➤ .admins
 ║ ➤ .vv
-║ ➤ .trt <text> <lang>
-║ ➤ .ss <link>
+║ ➤ .trt 
+║ ➤ .ss 
 ║ ➤ .jid
 ╚═══════════════════╝ 
 
 ╔═══════════════════╗
-👮‍♂️ *Admin Commands*:
-║ ➤ .ban @user
-║ ➤ .promote @user
-║ ➤ .demote @user
-║ ➤ .mute <minutes>
+ *Admin Commands*:
+║ ➤ .ban 
+║ ➤ .promote 
+║ ➤ .demote 
+║ ➤ .mute 
 ║ ➤ .unmute
-║ ➤ .delete or .del
-║ ➤ .kick @user
-║ ➤ .warnings @user
-║ ➤ .warn @user
+║ ➤ .delete 
+║ ➤ .kick 
+║ ➤ .warnings
+║ ➤ .warn 
 ║ ➤ .antilink
 ║ ➤ .antibadword
 ║ ➤ .clear
-║ ➤ .tag <message>
+║ ➤ .tag 
 ║ ➤ .tagall
 ║ ➤ .chatbot
 ║ ➤ .resetlink
-║ ➤ .welcome <on/off>
-║ ➤ .goodbye <on/off>
-╚═══════════════════╝
+║ ➤ .welcome 
+║ ➤ .goodbye 
+╚═══════════════════
 
-╔═══════════════════╗
-🔒 *Owner Commands*:
+╔═══════════════════
+ *Owner Commands*:
 ║ ➤ .mode
 ║ ➤ .autostatus
 ║ ➤ .clearsession
 ║ ➤ .antidelete
 ║ ➤ .cleartmp
-║ ➤ .setpp <reply to image>
+║ ➤ .setpp 
 ║ ➤ .autoreact
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-🎨 *Image/Sticker Commands*:
-║ ➤ .blur <image>
-║ ➤ .simage <reply to sticker>
-║ ➤ .sticker <reply to image>
-║ ➤ .tgsticker <Link>
+ *Sticker Commands*:
+║ ➤ .blur 
+║ ➤ .simage 
+║ ➤ .sticker 
+║ ➤ .tgsticker 
 ║ ➤ .meme
-║ ➤ .take <packname> 
-║ ➤ .emojimix <emj1>+<emj2>
+║ ➤ .take 
+║ ➤ .emojimix 
 ╚═══════════════════╝  
 
 ╔═══════════════════╗
-🎮 *Game Commands*:
-║ ➤ .tictactoe @user
+ *Game Commands*:
+║ ➤ .tictactoe 
 ║ ➤ .hangman
-║ ➤ .guess <letter>
+║ ➤ .guess 
 ║ ➤ .trivia
-║ ➤ .answer <answer>
+║ ➤ .answer 
 ║ ➤ .truth
 ║ ➤ .dare
-╚═══════════════════╝
+╚═══════════════════
 
-╔═══════════════════╗
-🤖 *AI Commands*:
-║ ➤ .gpt <question>
-║ ➤ .gemini <question>
-║ ➤ .imagine <prompt>
-║ ➤ .flux <prompt>
-╚═══════════════════╝
+╔═══════════════════
+ *AI Commands*:
+║ ➤ .gpt 
+║ ➤ .gemini 
+║ ➤ .imagine 
+║ ➤ .flux 
+╚═══════════════════
 
-╔═══════════════════╗
-🎯 *Fun Commands*:
-║ ➤ .compliment @user
-║ ➤ .insult @user
+╔═══════════════════
+ *Fun*
+║ ➤ .compliment 
+║ ➤ .insult 
 ║ ➤ .flirt 
 ║ ➤ .shayari
 ║ ➤ .goodnight
 ║ ➤ .roseday
-║ ➤ .character @user
-║ ➤ .wasted @user
-║ ➤ .ship @user
-║ ➤ .simp @user
-║ ➤ .stupid @user [text]
+║ ➤ .character
+║ ➤ .wasted
+║ ➤ .ship 
+║ ➤ .simp 
+║ ➤ .stupid 
+╚═══════════════════
+
+╔═══════════════════╗
+ *Textmaker*:
+║ ➤ .metallic 
+║ ➤ .ice 
+║ ➤ .snow 
+║ ➤ .impressive 
+║ ➤ .matrix 
+║ ➤ .light 
+║ ➤ .neon 
+║ ➤ .devil 
+║ ➤ .purple 
+║ ➤ .thunder 
+║ ➤ .leaves 
+║ ➤ .1917 
+║ ➤ .arena 
+║ ➤ .hacker 
+║ ➤ .sand 
+║ ➤ .blackpink 
+║ ➤ .glitch 
+║ ➤ .fire 
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-🔤 *Textmaker*:
-║ ➤ .metallic <text>
-║ ➤ .ice <text>
-║ ➤ .snow <text>
-║ ➤ .impressive <text>
-║ ➤ .matrix <text>
-║ ➤ .light <text>
-║ ➤ .neon <text>
-║ ➤ .devil <text>
-║ ➤ .purple <text>
-║ ➤ .thunder <text>
-║ ➤ .leaves <text>
-║ ➤ .1917 <text>
-║ ➤ .arena <text>
-║ ➤ .hacker <text>
-║ ➤ .sand <text>
-║ ➤ .blackpink <text>
-║ ➤ .glitch <text>
-║ ➤ .fire <text>
+ *Dl*:
+║ ➤ .play 
+║ ➤ .song
+║ ➤ .instagram 
+║ ➤ .facebook 
+║ ➤ .tiktok 
+║ ➤ .video 
+║ ➤ .ytmp4 
 ╚═══════════════════╝
 
 ╔═══════════════════╗
-📥 *Downloader*:
-║ ➤ .play <song_name>
-║ ➤ .song <song_name>
-║ ➤ .instagram <link>
-║ ➤ .facebook <link>
-║ ➤ .tiktok <link>
-║ ➤ .video <song name>
-║ ➤ .ytmp4 <Link>
-╚═══════════════════╝
-
-╔═══════════════════╗
-💻 *Github Commands:*
+*Github*
 ║ ➤ .git
 ║ ➤ .github
 ║ ➤ .sc
@@ -172,7 +172,7 @@ Join our channel for updates:`;
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD',
+                        newsletterName: 'KELIN MD',
                         serverMessageId: -1
                     }
                 }
@@ -186,7 +186,7 @@ Join our channel for updates:`;
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
                         newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD by Mr Unique Hacker',
+                        newsletterName: 'KELIN MD',
                         serverMessageId: -1
                     } 
                 }
