@@ -203,9 +203,6 @@ async function helpCommand(sock, chatId, message) {
 
 ╔═══════════════════╗
 🖼️ *ANIME*:
-║ ➤ .neko
-║ ➤ .waifu
-║ ➤ .loli
 ║ ➤ .nom 
 ║ ➤ .poke 
 ║ ➤ .cry 
