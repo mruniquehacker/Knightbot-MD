@@ -14,7 +14,7 @@ async function helpCommand(sock, chatId, message) {
 *Available Commands:*
 
 ╔═══════════════════╗
-🌐 *General Commands*:
+ *Utility*:
 ║ ➤ .help
 ║ ➤ .ping
 ║ ➤ .alive
@@ -37,7 +37,7 @@ async function helpCommand(sock, chatId, message) {
 ╚═══════════════════╝ 
 
 ╔═══════════════════╗
- *Admin Commands*:
+ *Group*:
 ║ ➤ .ban 
 ║ ➤ .promote 
 ║ ➤ .demote 
@@ -59,7 +59,7 @@ async function helpCommand(sock, chatId, message) {
 ╚═══════════════════
 
 ╔═══════════════════
- *Owner Commands*:
+ *Owner*:
 ║ ➤ .mode
 ║ ➤ .autostatus
 ║ ➤ .clearsession
@@ -70,7 +70,7 @@ async function helpCommand(sock, chatId, message) {
 ╚═══════════════════╝
 
 ╔═══════════════════╗
- *Sticker Commands*:
+ *Sticker*:
 ║ ➤ .blur 
 ║ ➤ .simage 
 ║ ➤ .sticker 
@@ -81,7 +81,7 @@ async function helpCommand(sock, chatId, message) {
 ╚═══════════════════╝  
 
 ╔═══════════════════╗
- *Game Commands*:
+ *Games*:
 ║ ➤ .tictactoe 
 ║ ➤ .hangman
 ║ ➤ .guess 
