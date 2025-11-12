@@ -159,5 +159,3 @@ This project is licensed under the [MIT License](https://opensource.org/licenses
 Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/wijesuriya2017/Knightbot-MD/issues).
 
 ---
-
-## 🌟 Show your suppor
