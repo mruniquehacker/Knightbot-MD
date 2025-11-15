@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const https = require('https');
 const settings = require('../settings');
+const isOwnerOrSudo = require('../lib/isOwner');
 
 function run(cmd) {
     return new Promise((resolve, reject) => {
@@ -189,8 +190,11 @@ async function restartProcess(sock, chatId, message) {
     }, 500);
 }
 
-async function updateCommand(sock, chatId, message, senderIsSudo, zipOverride) {
-    if (!message.key.fromMe && !senderIsSudo) {
+async function updateCommand(sock, chatId, message, zipOverride) {
+    const senderId = message.key.participant || message.key.remoteJid;
+    const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
+    
+    if (!message.key.fromMe && !isOwner) {
         await sock.sendMessage(chatId, { text: 'Only bot owner or sudo can use .update' }, { quoted: message });
         return;
     }

@@ -1,4 +1,5 @@
 const fs = require('fs');
+const isOwnerOrSudo = require('../lib/isOwner');
 
 const PMBLOCKER_PATH = './data/pmblocker.json';
 
@@ -29,6 +30,14 @@ function writeState(enabled, message) {
 }
 
 async function pmblockerCommand(sock, chatId, message, args) {
+    const senderId = message.key.participant || message.key.remoteJid;
+    const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
+    
+    if (!message.key.fromMe && !isOwner) {
+        await sock.sendMessage(chatId, { text: 'Only bot owner can use this command!' }, { quoted: message });
+        return;
+    }
+    
     const argStr = (args || '').trim();
     const [sub, ...rest] = argStr.split(' ');
     const state = readState();

@@ -1,5 +1,6 @@
 const settings = require('../settings');
 const { addSudo, removeSudo, getSudoList } = require('../lib/index');
+const isOwnerOrSudo = require('../lib/isOwner');
 
 function extractMentionedJid(message) {
     const mentioned = message.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
@@ -12,8 +13,7 @@ function extractMentionedJid(message) {
 
 async function sudoCommand(sock, chatId, message) {
     const senderJid = message.key.participant || message.key.remoteJid;
-    const ownerJid = settings.ownerNumber + '@s.whatsapp.net';
-    const isOwner = message.key.fromMe || senderJid === ownerJid;
+    const isOwner = message.key.fromMe || await isOwnerOrSudo(senderJid, sock, chatId);
 
     const rawText = message.message?.conversation || message.message?.extendedTextMessage?.text || '';
     const args = rawText.trim().split(' ').slice(1);

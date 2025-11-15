@@ -9,10 +9,14 @@ function readJsonSafe(path, fallback) {
     }
 }
 
+const isOwnerOrSudo = require('../lib/isOwner');
+
 async function settingsCommand(sock, chatId, message) {
     try {
-        // Owner-only
-        if (!message.key.fromMe) {
+        const senderId = message.key.participant || message.key.remoteJid;
+        const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
+        
+        if (!message.key.fromMe && !isOwner) {
             await sock.sendMessage(chatId, { text: 'Only bot owner can use this command!' }, { quoted: message });
             return;
         }

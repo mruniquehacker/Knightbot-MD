@@ -78,13 +78,47 @@ async function handleTagDetection(sock, chatId, message, senderId) {
         const antitagSetting = await getAntitag(chatId, 'on');
         if (!antitagSetting || !antitagSetting.enabled) return;
 
-        // Check if message contains mentions
-        const mentions = message.message?.extendedTextMessage?.contextInfo?.mentionedJid || 
-                        message.message?.conversation?.match(/@\d+/g) ||
-                        [];
+        // Get mentioned JIDs from contextInfo (proper mentions)
+        const mentionedJids = message.message?.extendedTextMessage?.contextInfo?.mentionedJid || [];
+        
+        // Extract text from all possible message types
+        const messageText = (
+            message.message?.conversation ||
+            message.message?.extendedTextMessage?.text ||
+            message.message?.imageMessage?.caption ||
+            message.message?.videoMessage?.caption ||
+            ''
+        );
+
+        // Find all @mentions in text using improved regex
+        // Matches: @123456789, @⁨+91 70239 51514⁩, @~.., @217875470114951, etc.
+        const textMentions = messageText.match(/@[\d+\s\-()~.]+/g) || [];
+        
+        // Also match numeric-only mentions (like @217875470114951)
+        const numericMentions = messageText.match(/@\d{10,}/g) || [];
+        
+        // Combine all mentions and remove duplicates
+        const allMentions = [...new Set([...mentionedJids, ...textMentions, ...numericMentions])];
+        
+        // Count unique numeric mentions (bot tagall patterns)
+        const uniqueNumericMentions = new Set();
+        numericMentions.forEach(mention => {
+            const numMatch = mention.match(/@(\d+)/);
+            if (numMatch) uniqueNumericMentions.add(numMatch[1]);
+        });
+        
+        // Count mentions from mentionedJid array (proper WhatsApp mentions)
+        const mentionedJidCount = mentionedJids.length;
+        
+        // Count unique numeric mentions found in text (bot tagall pattern)
+        const numericMentionCount = uniqueNumericMentions.size;
+        
+        // Use the higher count (either proper mentions or text-based mentions)
+        // This ensures we catch both standard mentions and bot tagall patterns
+        const totalMentions = Math.max(mentionedJidCount, numericMentionCount);
 
         // Check if it's a group message and has multiple mentions
-        if (mentions.length > 0 && mentions.length >= 3) {
+        if (totalMentions >= 3) {
             // Get group participants to check if it's tagging most/all members
             const groupMetadata = await sock.groupMetadata(chatId);
             const participants = groupMetadata.participants || [];
@@ -92,7 +126,13 @@ async function handleTagDetection(sock, chatId, message, senderId) {
             // If mentions are more than 50% of group members, consider it as tagall
             const mentionThreshold = Math.ceil(participants.length * 0.5);
             
-            if (mentions.length >= mentionThreshold) {
+            // Also check if there are many numeric mentions in the text (bot tagall pattern)
+            // This catches bots that use numeric IDs instead of proper mentions
+            const hasManyNumericMentions = numericMentionCount >= 10 || 
+                                          (numericMentionCount >= 5 && numericMentionCount >= mentionThreshold);
+            
+            // Trigger if: standard mentions exceed threshold OR many numeric mentions detected
+            if (totalMentions >= mentionThreshold || hasManyNumericMentions) {
                 
                 const action = antitagSetting.action || 'delete';
                 
