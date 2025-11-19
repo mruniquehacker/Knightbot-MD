@@ -1,162 +1,124 @@
-# 🤖 JARVIS MD
-
-This is a WhatsApp bot built using the Baileys library for group management, including features like tagging all members, muting/unmuting, and many more. It's designed to help admins efficiently manage WhatsApp groups.
-
-<div align="center"> 
-  <a href=""> 
-    <img src="https://readme-typing-svg.demolab.com?font=Ribeye&size=50&pause=1000&color=33ff00&center=true&width=910&height=100&lines=JARVIS-Bot;Multi+Device+Whatsapp+Bot;Coded+By+Harr" alt="Typing SVG" />
-  </a> 
-</div> 
-
-<div align="center"> 
-  <a href=""> 
-    <img src="https://github.com/mruniquehacker/Knightbot-MD/blob/main/assets/bot_image.jpg" alt="JARVIS MD" height="300"> 
-  </a> 
-</div>
-
----
-
-## 🚀 Steps to Deploy
-
-### Step 1: Fork the Repository
-
-Click the button below to fork the Knight Bot repository to your GitHub account:
-
 <div align="center">
-  <a href="https://github.com/mruniquehacker/Knightbot-MD/fork">
-    <img src="https://img.shields.io/badge/Fork-Repository-blue?style=for-the-badge" alt="Fork the repository"/>
-  </a>
-</div>
 
----
+# 🤖 JARVIS - WhatsApp Multi-Device Bot
 
-### Step 2: Get Pair Code
+<a href="https://git.io/typing-svg"><img src="https://readme-typing-svg.herokuapp.com?font=Fira+Code&weight=600&size=30&pause=1000&color=25F733&center=true&vCenter=true&width=435&lines=WhatsApp+Bot+Multi-Device;Created+by+Muhar;Fast,+Reliable,+&+Fun!" alt="Typing SVG" /></a>
 
-Deploy the bot and easily connect it to your WhatsApp account by pair code. Click the button below to deploy the bot on Replit.
+<p align="center">
+  <a href="#"><img title="NodeJS" src="https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white"></a>
+  <a href="#"><img title="JavaScript" src="https://img.shields.io/badge/JavaScript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black"></a>
+  <a href="#"><img title="Maintenance" src="https://img.shields.io/badge/Maintained%3F-yes-green.svg?style=for-the-badge"></a>
+</p>
 
-<div align="center">
-  <a href="https://knight-bot-paircode.onrender.com" target="_blank">
-    <img src="https://img.shields.io/badge/GET%20PAIR%20CODE-Easy%20Method-ff4d4d?style=for-the-badge" alt="Generate Pair Code"/>
-  </a>
-</div>
+<p align="center">
+  Bot WhatsApp canggih dengan fitur lengkap mulai dari <b>Manajemen Grup</b>, <b>AI (Gemini/GPT)</b>, <b>Media Downloader</b>, hingga <b>Game Interaktif</b>. Dibuat menggunakan Node.js dan Baileys library.
+</p>
 
-
-### After getting creds.json file, upload it to session folder
-
----
-
-### Step 3: Deploy Now
-
-For further customization and setup guidance, click the button below:
-
-<div align="center">
-  <a href="https://youtu.be/-oz_u1iMgf8">
-    <img src="https://img.shields.io/badge/Deploy Tutorial-dc3545?style=for-the-badge&logo=youtube" alt="YouTube Link"/>
-  </a>
-  <a href="https://bot-hosting.net/?aff=1068419752923508776">
-    <img src="https://img.shields.io/badge/Deploy on Panel-28a745?style=for-the-badge" alt="Deploy on Panel"/>
-  </a>
-</div>
-
-### Deploy on VPS
-
-<div align="center">
-  <a href="https://client.petrosky.io/aff.php?aff=394" target="_blank">
-    <img src="https://img.shields.io/badge/petrosky vps-0078E7?style=for-the-badge" alt="petrosky vps"/>
-  </a>
-</div>
-
-### Deploy Now on Below Panel
-<div align="center">
-<a href="https://dashboard.katabump.com/auth/login#d6b7d6" target="_blank">
-  <img src="https://img.shields.io/badge/Katabump-D6B7D6?style=for-the-badge&logo=server&logoColor=black" alt="Katabump"/>
-</a>
-</div>
-
-### Join Us
-
-<div align="center">
-  <a href="https://t.me/+3QhFUZHx-nhhZmY1">
-    <img src="https://img.shields.io/badge/Join%20Telegram-0078E7?style=for-the-badge&logo=telegram&logoColor=white" alt="Join Telegram"/>
-  </a>
+<p align="center">
   <a href="https://whatsapp.com/channel/0029Va90zAnIHphOuO8Msp3A">
-    <img src="https://img.shields.io/badge/Join%20WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Join WhatsApp"/>
+    <img src="https://img.shields.io/badge/Join%20Official%20Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Whatsapp Channel">
   </a>
+</p>
+
 </div>
 
 ---
 
-## ⚙️ Features
+## 🌟 Features / Fitur Unggulan
 
-- **Tag all group members** with the `.tagall` command
-- **Admin restricted usage** (Only group admins can use certain commands)
-- **Games** like Tic-Tac-Toe for interactive group engagement
-- **Text-to-Speech** with `.tts`
-- **Sticker creation** with `.sticker`
-- **Anti-link detection** for group safety
-- **Warn and manage group members** with admin control
+Bot ini dilengkapi dengan ratusan fitur. Berikut adalah rangkuman fitur utamanya:
+
+### 🛡️ Group Management (Admin Tools)
+| Fitur | Deskripsi |
+| :--- | :--- |
+| `.kick` / `.add` | Mengeluarkan atau menambahkan member |
+| `.promote` / `.demote` | Mengatur jabatan admin |
+| `.hidetag` / `.tagall` | Tag seluruh member grup (tersembunyi/muncul) |
+| `.antilink` | Otomatis kick pengirim link grup lain |
+| `.antibadword` | Filter kata-kata kasar otomatis |
+| `.welcome` / `.goodbye` | Pesan sambutan & perpisahan otomatis |
+| `.groupinfo` | Melihat informasi lengkap grup |
+
+### 📥 Media & Downloaders
+* **YouTube**: `.play` (Audio), `.video` (Video), `.ytmp3`, `.ytmp4`
+* **Social Media**: `.tiktok`, `.instagram` (Post/Reels/Story), `.facebook`, `.twitter`
+* **Spotify**: `.spotify` (Download lagu)
+* **Sticker Tools**: `.sticker` (Image to Sticker), `.simage` (Sticker to Image), `.stickercrop`
+
+### 🤖 Artificial Intelligence (AI)
+> Powered by advanced AI models.
+* **Chatbot**: Auto-reply pintar di grup (SimSimi/Custom).
+* **Gemini/GPT**: Tanya jawab dengan AI (`.ai`, `.gemini`, `.gpt`).
+* **Image Generation**: `.imagine` (Text to Image), `.dalle`.
+* **Image Enhancement**: `.remini` (HD-in foto buram), `.removebg` (Hapus background).
+
+### 🎮 Games & Fun
+<details>
+<summary>Klik untuk melihat list game</summary>
+
+* ❌ **Tic Tac Toe** (`.ttt`)
+* 🎭 **Hangman** (`.hangman`)
+* 🧠 **Trivia & Kuis** (`.trivia`)
+* 🔮 **Cek Khodam/Misc** (`.cekkhodam`, `.artinama`)
+* 👊 **Dare or Truth** (`.dare`, `.truth`)
+* 🎵 **Lirik Lagu** (`.lyrics`)
+* 🌦️ **Cuaca** (`.weather`)
+
+</details>
 
 ---
 
-## 📖 About
+## 🛠️ Requirements
 
-The Knight WhatsApp Bot assists group admins by providing them with tools to efficiently manage large WhatsApp groups. The bot uses the Baileys library to interact with the WhatsApp Web API and supports multi-device features.
+Sebelum menjalankan bot, pastikan kamu sudah menginstall:
 
-It is lightweight and can be easily customized to add more commands as per your requirements. The bot runs in a Node.js environment and provides QR code-based authentication to link your WhatsApp account.
+* [Node.js](https://nodejs.org/en/) (Versi 16.x atau lebih baru)
+* [FFmpeg](https://ffmpeg.org/) (Untuk fitur sticker & media converter)
+* [Git](https://git-scm.com/)
 
----
+## 🚀 Installation (Termux/VPS/Local)
 
-## 🛠️ Setup & Installation
-
-### Prerequisites
-
-- Node.js installed on your system
-- Git installed (for cloning the repository)
-
-### Step-by-Step Setup
-
-1. **Clone the repository:**
-
+1.  **Clone Repository**
     ```bash
-    git clone https://github.com/mruniquehacker/Knightbot-MD.git
-    cd Knightbot-MD
+    git clone [https://github.com/username/repo-name.git](https://github.com/username/repo-name.git)
+    cd repo-name
     ```
 
-2. **Install the dependencies:**
-
+2.  **Install Dependencies**
     ```bash
     npm install
     ```
 
-3. **Run the bot:**
-
+3.  **Start the Bot**
     ```bash
-    node index.js
+    npm start
     ```
-
-4. **Scan the QR code:**
-
-    Once the bot starts, a QR code will appear in the terminal. Scan this QR code using the Linked Devices feature in WhatsApp to connect your WhatsApp account with the bot.
+    _Scan QR Code yang muncul di terminal menggunakan WhatsApp kamu._
 
 ---
 
+## ⚙️ Configuration
 
-## 📄 License
-
-This project is licensed under the [MIT License](https://opensource.org/licenses/MIT) - see the [LICENSE](https://github.com/mruniquehacker/Knightbot-MD/blob/main/LICENSE) file for details.
-
----
-
-## 🙌 Contributions
-
-Contributions, issues, and feature requests are welcome! Feel free to check the [issues page](https://github.com/mruniquehacker/Knightbot-MD/issues).
+Edit file `settings.js` atau `config.js` untuk mengatur:
+* Nomor Owner
+* Nama Bot & Author Sticker
+* API Keys (OpenAI, RemoveBG, dll)
 
 ---
 
-## 🌟 Show your support
+## 📝 Special Thanks & Credits
 
-If you like this project, please give it a [⭐️ star on GitHub](https://github.com/mruniquehacker/Knightbot)!
+* **Baileys Library** (Multi-device connection)
+* **Author**: [Nama Kamu/Mr Unique Hacker]
+* **Contributors**
+* Semua penyedia API gratis.
 
+---
+
+<div align="center">
+  <p>Jangan lupa kasih ⭐ <b>Star</b> di repository ini jika bot ini bermanfaat!</p>
+  <p><i>Created with ❤️ by Muhar</i></p>
+</div>
 
 ## Credits
 
