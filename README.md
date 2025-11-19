@@ -15,7 +15,7 @@
 </p>
 
 <p align="center">
-  <a href="https://whatsapp.com/channel/0029Va90zAnIHphOuO8Msp3A">
+  <a href="https://whatsapp.com/channel/0029Vb72DoS545uy5FD6W006">
     <img src="https://img.shields.io/badge/Join%20Official%20Channel-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Whatsapp Channel">
   </a>
 </p>
