@@ -142,6 +142,10 @@ const { anticallCommand, readState: readAnticallState } = require('./commands/an
 const { pmblockerCommand, readState: readPmBlockerState } = require('./commands/pmblocker');
 const settingsCommand = require('./commands/settings');
 const soraCommand = require('./commands/sora');
+const pinterestCommand = require('./commands/pinterest');
+const jadwalBolaCommand = require('./commands/jadwalbola');
+const ytplayvidCommand = require('./commands/ytplayvid');
+
 
 // Global settings
 global.packname = settings.packname;
@@ -155,8 +159,8 @@ const channelInfo = {
         forwardingScore: 1,
         isForwarded: true,
         forwardedNewsletterMessageInfo: {
-            newsletterJid: '120363161513685998@newsletter',
-            newsletterName: 'KnightBot MD',
+            newsletterJid: '120363422522996201@newsletter',
+            newsletterName: 'JARVIS MD',
             serverMessageId: -1
         }
     }
@@ -428,6 +432,17 @@ async function handleMessages(sock, messageUpdate, printLog) {
             case userMessage.startsWith('.warnings'):
                 const mentionedJidListWarnings = message.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
                 await warningsCommand(sock, chatId, mentionedJidListWarnings);
+                break;
+           case userMessage.startsWith('.pin') || userMessage.startsWith('.pinterest'):
+                await pinterestCommand(sock, chatId, message);
+                break;
+            case userMessage === '.jadwalbola':
+                await jadwalBolaCommand(sock, chatId, message);
+                commandExecuted = true;
+                break;
+                            case userMessage.startsWith('.ytplayvid'):
+                await ytplayvidCommand(sock, chatId, message);
+                commandExecuted = true;
                 break;
             case userMessage.startsWith('.warn'):
                 const mentionedJidListWarn = message.message.extendedTextMessage?.contextInfo?.mentionedJid || [];
