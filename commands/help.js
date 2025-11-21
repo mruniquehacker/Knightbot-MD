@@ -5,10 +5,9 @@ const path = require('path');
 async function helpCommand(sock, chatId, message) {
     const helpMessage = `
 ╔═══════════════════╗
-   *🤖 ${settings.botName || 'KnightBot-MD'}*  
-   Version: *${settings.version || '3.0.0'}*
-   by ${settings.botOwner || 'Mr Unique Hacker'}
-   YT : ${global.ytch}
+   *🤖 ${settings.botName || 'JARVIS-MD'}*  
+   Version: *${settings.version || '3.5.0'}*
+   by ${settings.botOwner || 'Har'}
 ╚═══════════════════╝
 
 *Available Commands:*
@@ -103,13 +102,8 @@ async function helpCommand(sock, chatId, message) {
 ╚═══════════════════╝  
 
 ╔═══════════════════╗
-🖼️ *Pies Commands*:
-║ ➤ .pies <country>
-║ ➤ .china 
-║ ➤ .indonesia 
-║ ➤ .japan 
-║ ➤ .korea 
-║ ➤ .hijab
+📢 *Informasi*:
+║ ➤ .jadwalbola 
 ╚═══════════════════╝
 
 ╔═══════════════════╗
@@ -177,24 +171,22 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .instagram <link>
 ║ ➤ .facebook <link>
 ║ ➤ .tiktok <link>
+║ ➤ .pinterest <link>
 ║ ➤ .video <song name>
 ║ ➤ .ytmp4 <Link>
+║ ➤ .ytplayvid <query>
 ╚═══════════════════╝
 
 ╔═══════════════════╗
 🧩 *MISC*:
 ║ ➤ .heart
-║ ➤ .horny
 ║ ➤ .circle
-║ ➤ .lgbt
-║ ➤ .lolice
 ║ ➤ .its-so-stupid
 ║ ➤ .namecard 
 ║ ➤ .oogway
 ║ ➤ .tweet
 ║ ➤ .ytcomment 
 ║ ➤ .comrade 
-║ ➤ .gay 
 ║ ➤ .glass 
 ║ ➤ .jail 
 ║ ➤ .passed 
@@ -212,20 +204,10 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .wink 
 ║ ➤ .facepalm 
 ╚═══════════════════╝
-
-╔═══════════════════╗
-💻 *Github Commands:*
-║ ➤ .git
-║ ➤ .github
-║ ➤ .sc
-║ ➤ .script
-║ ➤ .repo
-╚═══════════════════╝
-
-Join our channel for updates:`;
+`;
 
     try {
-        const imagePath = path.join(__dirname, '../assets/bot_image.jpg');
+        const imagePath = path.join(__dirname, '../');
         
         if (fs.existsSync(imagePath)) {
             const imageBuffer = fs.readFileSync(imagePath);
@@ -237,8 +219,8 @@ Join our channel for updates:`;
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD',
+                        newsletterJid: '120363422522996201@newsletter',
+                        newsletterName: 'Jarvis ',
                         serverMessageId: -1
                     }
                 }
@@ -251,8 +233,8 @@ Join our channel for updates:`;
                     forwardingScore: 1,
                     isForwarded: true,
                     forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD by Mr Unique Hacker',
+                        newsletterJid: '120363422522996201@newsletter',
+                        newsletterName: 'Jarvis MD  by Har',
                         serverMessageId: -1
                     } 
                 }
