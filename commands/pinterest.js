@@ -23,11 +23,6 @@ async function pinterestCommand(sock, chatId, message) {
         const used = (rawText || '').split(/\s+/)[0] || '.pinterest';
         const query = rawText.slice(used.length).trim();
 
-        if (!query) {
-            await sock.sendMessage(chatId, { text: 'Contoh: .pinterest anime girl' }, { quoted: message });
-            return;
-        }
-
         // 2. Beri reaksi atau pesan tunggu
         await sock.sendMessage(chatId, { react: { text: '🔍', key: message.key } });
 
