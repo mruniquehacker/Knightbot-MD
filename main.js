@@ -16,14 +16,14 @@ setInterval(() => {
     for (const file of files) {
       const filePath = path.join(customTemp, file);
       fs.stat(filePath, (err, stats) => {
-        if (!err && Date.now() - stats.mtimeMs > 3 * 60 * 60 * 1000) {
+        if (!err && Date.now() - stats.mtimeMs > 24 * 60 * 60 * 1000) {
           fs.unlink(filePath, () => {});
         }
       });
     }
   });
   console.log('🧹 Temp folder auto-cleaned');
-}, 3 * 60 * 60 * 1000);
+}, 24 * 60 * 60 * 1000);
 
 const settings = require('./settings');
 require('./config.js');
