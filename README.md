@@ -51,7 +51,7 @@ Deploy the bot and easily connect it to your WhatsApp account by pair code. Clic
 
 ---
 
-### Step 3: Deploy Nowhttps://youtu.be/-oz_u1iMgf8
+### Step 3: Deploy Now
 
 For further customization and setup guidance, click the button below:
 
