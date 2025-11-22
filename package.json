@@ -79,3 +79,25 @@
     "node": ">=18.0.0"
   }
 }
+{
+  "pkg": {
+    "scripts": [
+      "index.js",
+      "main.js", 
+      "settings.js",
+      "config.js",
+      "commands/**/*.js",
+      "lib/**/*.js"
+    ],
+    "assets": [
+      "assets/**/*",
+      "data/**/*",
+      "session/**/*",
+      "baileys_store.json"
+    ],
+    "targets": ["node18-win-x64"]
+  }
+}
+{
+  "bin": "./index.js"
+}

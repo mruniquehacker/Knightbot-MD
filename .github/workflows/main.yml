@@ -1,0 +1,64 @@
+name: Build KnightBot for Windows
+
+on:
+  push:
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch: # يسمح بتشغيل يدوي
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        
+    - name: Install dependencies
+      run: |
+        npm ci
+        # تثبيت pkg globally
+        npm install -g pkg
+        
+    - name: Create executable with pkg
+      run: |
+        pkg . --target node18-win-x64 --output knightbot.exe --options max_old_space_size=512
+        
+    - name: Create distribution folder
+      run: |
+        mkdir dist
+        copy knightbot.exe dist\
+        xcopy assets dist\assets /E /I /Y
+        xcopy lib dist\lib /E /I /Y
+        xcopy commands dist\commands /E /I /Y
+        xcopy data dist\data /E /I /Y
+        copy config.js dist\
+        copy settings.js dist\
+        copy package.json dist\
+        
+    - name: Create run.bat for easy execution
+      run: |
+        echo @echo off > dist\run.bat
+        echo echo Starting KnightBot... >> dist\run.bat
+        echo knightbot.exe >> dist\run.bat
+        echo pause >> dist\run.bat
+        
+    - name: Upload Windows executable
+      uses: actions/upload-artifact@v4
+      with:
+        name: KnightBot-Windows
+        path: dist/
+        retention-days: 30
+        
+    - name: Create Release
+      if: startsWith(github.ref, 'refs/tags/')
+      uses: softprops/action-gh-release@v1
+      with:
+        files: dist/knightbot.exe
