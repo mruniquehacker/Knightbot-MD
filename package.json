@@ -5,9 +5,15 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
+    "start:optimized": "node --max-old-space-size=512 --optimize-for-size --gc-interval=100 index.js",
+    "cleanup": "node cleanup.js",
+    "reset-session": "node reset-session.js",
+    "start:clean": "npm run cleanup && npm run start:optimized",
+    "start:fresh": "npm run reset-session && npm start",
+    "install:panel": "npm install --legacy-peer-deps",
+    "install:force": "npm install --force",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "docker:build": "docker build -t knightbot .",
-    "docker:run": "docker run -e SESSION_ID=$SESSION_ID knightbot"
+    "docker:build": "docker build -t docker run -e SESSION_ID=$SESSION_ID knightbot"
   },
   "keywords": [
     "whatsapp-bot"
@@ -19,7 +25,7 @@
     "@ffmpeg/ffmpeg": "^0.12.15",
     "@hapi/boom": "^10.0.1",
     "@types/node": "^18.0.6",
-    "@whiskeysockets/baileys": "^6.7.17",
+    "@whiskeysockets/baileys": "^v7.0.0-rc.9",
     "awesome-phonenumber": "^5.9.0",
     "axios": "^1.8.4",
     "chalk": "^4.1.2",
@@ -33,7 +39,7 @@
     "fs-extra": "^11.2.0",
     "gtts": "^0.2.1",
     "human-readable": "^0.2.1",
-    "jimp": "^0.16.13",
+    "jimp": "^1.6.0",
     "jsdom": "^22.1.0",
     "libphonenumber-js": "^1.11.18",
     "libsignal": "^2.0.1",
@@ -65,5 +71,11 @@
     "youtubedl-core": "^4.11.7",
     "yt-search": "^2.12.1",
     "ytdl-core": "^4.11.5"
+  },
+  "overrides": {
+    "jimp": "^1.6.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

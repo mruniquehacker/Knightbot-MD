@@ -1,7 +1,7 @@
 const settings = require("../settings");
-async function aliveCommand(sock, chatId) {
+async function aliveCommand(sock, chatId, message) {
     try {
-        const message = `*🤖 Knight Bot is Active!*\n\n` +
+        const message1 = `*🤖 Knight Bot is Active!*\n\n` +
                        `*Version:* ${settings.version}\n` +
                        `*Status:* Online\n` +
                        `*Mode:* Public\n\n` +
@@ -13,7 +13,7 @@ async function aliveCommand(sock, chatId) {
                        `Type *.menu* for full command list`;
 
         await sock.sendMessage(chatId, {
-            text: message,
+            text: message1,
             contextInfo: {
                 forwardingScore: 999,
                 isForwarded: true,
@@ -23,10 +23,10 @@ async function aliveCommand(sock, chatId) {
                     serverMessageId: -1
                 }
             }
-        });
+        }, { quoted: message });
     } catch (error) {
         console.error('Error in alive command:', error);
-        await sock.sendMessage(chatId, { text: 'Bot is alive and running!' });
+        await sock.sendMessage(chatId, { text: 'Bot is alive and running!' }, { quoted: message });
     }
 }
 

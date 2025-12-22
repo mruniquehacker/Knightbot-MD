@@ -1,8 +1,8 @@
 const fetch = require('node-fetch');
 
-async function shayariCommand(sock, chatId) {
+async function shayariCommand(sock, chatId, message) {
     try {
-        const response = await fetch('https://api.shizo.top/api/quote/shayari?apikey=knightbot');
+        const response = await fetch('https://shizoapi.onrender.com/api/texts/shayari?apikey=shizo');
         const data = await response.json();
         
         if (!data || !data.result) {
@@ -18,12 +18,12 @@ async function shayariCommand(sock, chatId) {
             text: data.result,
             buttons: buttons,
             headerType: 1
-        });
+        }, { quoted: message });
     } catch (error) {
         console.error('Error in shayari command:', error);
         await sock.sendMessage(chatId, { 
-            text: '❌ Failed to fetch shayari. Please try again later.'
-        });
+            text: '❌ Failed to fetch shayari. Please try again later.',
+        }, { quoted: message });
     }
 }
 

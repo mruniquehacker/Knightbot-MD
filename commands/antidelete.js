@@ -38,7 +38,7 @@ const cleanTempFolderIfLarge = () => {
     try {
         const sizeMB = getFolderSizeInMB(TEMP_MEDIA_DIR);
         
-        if (sizeMB > 100) {
+        if (sizeMB > 200) {
             const files = fs.readdirSync(TEMP_MEDIA_DIR);
             for (const file of files) {
                 const filePath = path.join(TEMP_MEDIA_DIR, file);
@@ -72,10 +72,15 @@ function saveAntideleteConfig(config) {
     }
 }
 
+const isOwnerOrSudo = require('../lib/isOwner');
+
 // Command Handler
 async function handleAntideleteCommand(sock, chatId, message, match) {
-    if (!message.key.fromMe) {
-        return sock.sendMessage(chatId, { text: '*Only the bot owner can use this command.*' });
+    const senderId = message.key.participant || message.key.remoteJid;
+    const isOwner = await isOwnerOrSudo(senderId, sock, chatId);
+    
+    if (!message.key.fromMe && !isOwner) {
+        return sock.sendMessage(chatId, { text: '*Only the bot owner can use this command.*' }, { quoted: message });
     }
 
     const config = loadAntideleteConfig();
@@ -83,7 +88,7 @@ async function handleAntideleteCommand(sock, chatId, message, match) {
     if (!match) {
         return sock.sendMessage(chatId, {
             text: `*ANTIDELETE SETUP*\n\nCurrent Status: ${config.enabled ? '✅ Enabled' : '❌ Disabled'}\n\n*.antidelete on* - Enable\n*.antidelete off* - Disable`
-        });
+        }, {quoted: message});
     }
 
     if (match === 'on') {
@@ -91,15 +96,15 @@ async function handleAntideleteCommand(sock, chatId, message, match) {
     } else if (match === 'off') {
         config.enabled = false;
     } else {
-        return sock.sendMessage(chatId, { text: '*Invalid command. Use .antidelete to see usage.*' });
+        return sock.sendMessage(chatId, { text: '*Invalid command. Use .antidelete to see usage.*' }, {quoted:message});
     }
 
     saveAntideleteConfig(config);
-    return sock.sendMessage(chatId, { text: `*Antidelete ${match === 'on' ? 'enabled' : 'disabled'}*` });
+    return sock.sendMessage(chatId, { text: `*Antidelete ${match === 'on' ? 'enabled' : 'disabled'}*` }, {quoted:message});
 }
 
-// Store incoming messages
-async function storeMessage(message) {
+// Store incoming messages (also handles anti-view-once by forwarding immediately)
+async function storeMessage(sock, message) {
     try {
         const config = loadAntideleteConfig();
         if (!config.enabled) return; // Don't store if antidelete is disabled
@@ -110,11 +115,30 @@ async function storeMessage(message) {
         let content = '';
         let mediaType = '';
         let mediaPath = '';
+        let isViewOnce = false;
 
         const sender = message.key.participant || message.key.remoteJid;
 
-        // Detect content
-        if (message.message?.conversation) {
+        // Detect content (including view-once wrappers)
+        const viewOnceContainer = message.message?.viewOnceMessageV2?.message || message.message?.viewOnceMessage?.message;
+        if (viewOnceContainer) {
+            // unwrap view-once content
+            if (viewOnceContainer.imageMessage) {
+                mediaType = 'image';
+                content = viewOnceContainer.imageMessage.caption || '';
+                const buffer = await downloadContentFromMessage(viewOnceContainer.imageMessage, 'image');
+                mediaPath = path.join(TEMP_MEDIA_DIR, `${messageId}.jpg`);
+                await writeFile(mediaPath, buffer);
+                isViewOnce = true;
+            } else if (viewOnceContainer.videoMessage) {
+                mediaType = 'video';
+                content = viewOnceContainer.videoMessage.caption || '';
+                const buffer = await downloadContentFromMessage(viewOnceContainer.videoMessage, 'video');
+                mediaPath = path.join(TEMP_MEDIA_DIR, `${messageId}.mp4`);
+                await writeFile(mediaPath, buffer);
+                isViewOnce = true;
+            }
+        } else if (message.message?.conversation) {
             content = message.message.conversation;
         } else if (message.message?.extendedTextMessage?.text) {
             content = message.message.extendedTextMessage.text;
@@ -135,6 +159,13 @@ async function storeMessage(message) {
             const buffer = await downloadContentFromMessage(message.message.videoMessage, 'video');
             mediaPath = path.join(TEMP_MEDIA_DIR, `${messageId}.mp4`);
             await writeFile(mediaPath, buffer);
+        } else if (message.message?.audioMessage) {
+            mediaType = 'audio';
+            const mime = message.message.audioMessage.mimetype || '';
+            const ext = mime.includes('mpeg') ? 'mp3' : (mime.includes('ogg') ? 'ogg' : 'mp3');
+            const buffer = await downloadContentFromMessage(message.message.audioMessage, 'audio');
+            mediaPath = path.join(TEMP_MEDIA_DIR, `${messageId}.${ext}`);
+            await writeFile(mediaPath, buffer);
         }
 
         messageStore.set(messageId, {
@@ -145,6 +176,28 @@ async function storeMessage(message) {
             group: message.key.remoteJid.endsWith('@g.us') ? message.key.remoteJid : null,
             timestamp: new Date().toISOString()
         });
+
+        // Anti-ViewOnce: forward immediately to owner if captured
+        if (isViewOnce && mediaType && fs.existsSync(mediaPath)) {
+            try {
+                const ownerNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
+                const senderName = sender.split('@')[0];
+                const mediaOptions = {
+                    caption: `*Anti-ViewOnce ${mediaType}*
+From: @${senderName}`,
+                    mentions: [sender]
+                };
+                if (mediaType === 'image') {
+                    await sock.sendMessage(ownerNumber, { image: { url: mediaPath }, ...mediaOptions });
+                } else if (mediaType === 'video') {
+                    await sock.sendMessage(ownerNumber, { video: { url: mediaPath }, ...mediaOptions });
+                }
+                // Cleanup immediately for view-once forward
+                try { fs.unlinkSync(mediaPath); } catch {}
+            } catch (e) {
+                // ignore
+            }
+        }
 
     } catch (err) {
         console.error('storeMessage error:', err);
@@ -217,6 +270,14 @@ async function handleMessageRevocation(sock, revocationMessage) {
                     case 'video':
                         await sock.sendMessage(ownerNumber, {
                             video: { url: original.mediaPath },
+                            ...mediaOptions
+                        });
+                        break;
+                    case 'audio':
+                        await sock.sendMessage(ownerNumber, {
+                            audio: { url: original.mediaPath },
+                            mimetype: 'audio/mpeg',
+                            ptt: false,
                             ...mediaOptions
                         });
                         break;

@@ -2,7 +2,7 @@ const gTTS = require('gtts');
 const fs = require('fs');
 const path = require('path');
 
-async function ttsCommand(sock, chatId, text, language = 'en') {
+async function ttsCommand(sock, chatId, text, message, language = 'en') {
     if (!text) {
         await sock.sendMessage(chatId, { text: 'Please provide the text for TTS conversion.' });
         return;
@@ -21,7 +21,7 @@ async function ttsCommand(sock, chatId, text, language = 'en') {
         await sock.sendMessage(chatId, {
             audio: { url: filePath },
             mimetype: 'audio/mpeg'
-        });
+        }, { quoted: message });
 
         fs.unlinkSync(filePath);
     });

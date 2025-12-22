@@ -17,7 +17,7 @@ async function wastedCommand(sock, chatId, message) {
         await sock.sendMessage(chatId, { 
             text: 'Please mention someone or reply to their message to waste them!', 
             ...channelInfo 
-        });
+        }, { quoted: message });
         return;
     }
 
@@ -49,7 +49,7 @@ async function wastedCommand(sock, chatId, message) {
         await sock.sendMessage(chatId, { 
             text: 'Failed to create wasted image! Try again later.',
             ...channelInfo 
-        });
+        }, { quoted: message });
     }
 }
 

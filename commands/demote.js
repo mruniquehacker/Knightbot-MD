@@ -103,8 +103,8 @@ async function demoteCommand(sock, chatId, mentionedJids, message) {
 // Function to handle automatic demotion detection
 async function handleDemotionEvent(sock, groupId, participants, author) {
     try {
-        if (!groupId || !participants) {
-            console.log('Invalid groupId or participants:', { groupId, participants });
+        // Safety check for participants
+        if (!Array.isArray(participants) || participants.length === 0) {
             return;
         }
 
@@ -113,15 +113,20 @@ async function handleDemotionEvent(sock, groupId, participants, author) {
 
         // Get usernames for demoted participants
         const demotedUsernames = await Promise.all(participants.map(async jid => {
-            return `@${jid.split('@')[0]}`;
+            // Handle case where jid might be an object or not a string
+            const jidString = typeof jid === 'string' ? jid : (jid.id || jid.toString());
+            return `@${jidString.split('@')[0]}`;
         }));
 
         let demotedBy;
-        let mentionList = [...participants];
+        let mentionList = participants.map(jid => {
+            // Ensure all mentions are proper JID strings
+            return typeof jid === 'string' ? jid : (jid.id || jid.toString());
+        });
 
         if (author && author.length > 0) {
             // Ensure author has the correct format
-            const authorJid = author;
+            const authorJid = typeof author === 'string' ? author : (author.id || author.toString());
             demotedBy = `@${authorJid.split('@')[0]}`;
             mentionList.push(authorJid);
         } else {

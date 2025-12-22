@@ -63,6 +63,8 @@ async function takeCommand(sock, chatId, message, args) {
             // Send the sticker
             await sock.sendMessage(chatId, {
                 sticker: finalBuffer
+            }, {
+                quoted: message
             });
 
         } catch (error) {

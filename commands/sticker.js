@@ -7,19 +7,31 @@ const webp = require('node-webpmux');
 const crypto = require('crypto');
 
 async function stickerCommand(sock, chatId, message) {
-    let mediaMessage;
+    // The message that will be quoted in the reply.
+    const messageToQuote = message;
+    
+    // The message object that contains the media to be downloaded.
+    let targetMessage = message;
 
+    // If the message is a reply, the target media is in the quoted message.
     if (message.message?.extendedTextMessage?.contextInfo?.quotedMessage) {
-        const quotedMessage = message.message.extendedTextMessage.contextInfo.quotedMessage;
-        mediaMessage = quotedMessage.imageMessage || quotedMessage.videoMessage || quotedMessage.documentMessage;
-        message = { message: quotedMessage };
-    } else {
-        mediaMessage = message.message?.imageMessage || message.message?.videoMessage || message.message?.documentMessage;
+        // We need to build a new message object for downloadMediaMessage to work correctly.
+        const quotedInfo = message.message.extendedTextMessage.contextInfo;
+        targetMessage = {
+            key: {
+                remoteJid: chatId,
+                id: quotedInfo.stanzaId,
+                participant: quotedInfo.participant
+            },
+            message: quotedInfo.quotedMessage
+        };
     }
+
+    const mediaMessage = targetMessage.message?.imageMessage || targetMessage.message?.videoMessage || targetMessage.message?.documentMessage;
 
     if (!mediaMessage) {
         await sock.sendMessage(chatId, { 
-            text: 'Please reply to an image, video or GIF to create a sticker.',
+            text: 'Please reply to an image/video with .sticker, or send an image/video with .sticker as the caption.',
             contextInfo: {
                 forwardingScore: 999,
                 isForwarded: true,
@@ -29,12 +41,12 @@ async function stickerCommand(sock, chatId, message) {
                     serverMessageId: -1
                 }
             }
-        });
+        },{ quoted: messageToQuote });
         return;
     }
 
     try {
-        const mediaBuffer = await downloadMediaMessage(message, 'buffer', {}, { 
+        const mediaBuffer = await downloadMediaMessage(targetMessage, 'buffer', {}, { 
             logger: undefined, 
             reuploadRequest: sock.updateMediaMessage 
         });
@@ -88,7 +100,49 @@ async function stickerCommand(sock, chatId, message) {
         });
 
         // Read the WebP file
-        const webpBuffer = fs.readFileSync(tempOutput);
+        let webpBuffer = fs.readFileSync(tempOutput);
+
+        // If animated and output is too large, re-encode with harsher settings similar to stickercrop
+        if (isAnimated && webpBuffer.length > 1000 * 1024) {
+            try {
+                const tempOutput2 = path.join(tmpDir, `sticker_fallback_${Date.now()}.webp`);
+                // Detect large source to decide compression level
+                const fileSizeKB = mediaBuffer.length / 1024;
+                const isLargeFile = fileSizeKB > 5000; // 5MB
+                const fallbackCmd = isLargeFile
+                    ? `ffmpeg -y -i "${tempInput}" -t 2 -vf "scale=512:512:force_original_aspect_ratio=decrease,fps=8,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000" -c:v libwebp -preset default -loop 0 -vsync 0 -pix_fmt yuva420p -quality 30 -compression_level 6 -b:v 100k -max_muxing_queue_size 1024 "${tempOutput2}"`
+                    : `ffmpeg -y -i "${tempInput}" -t 3 -vf "scale=512:512:force_original_aspect_ratio=decrease,fps=12,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000" -c:v libwebp -preset default -loop 0 -vsync 0 -pix_fmt yuva420p -quality 45 -compression_level 6 -b:v 150k -max_muxing_queue_size 1024 "${tempOutput2}"`;
+                await new Promise((resolve, reject) => {
+                    exec(fallbackCmd, (error) => error ? reject(error) : resolve());
+                });
+                if (fs.existsSync(tempOutput2)) {
+                    webpBuffer = fs.readFileSync(tempOutput2);
+                    try { fs.unlinkSync(tempOutput2); } catch {}
+                }
+            } catch {}
+        }
+        // Read the WebP file
+        webpBuffer = fs.readFileSync(tempOutput);
+
+        // If animated and output is too large, re-encode with harsher settings similar to stickercrop
+        if (isAnimated && webpBuffer.length > 1000 * 1024) {
+            try {
+                const tempOutput2 = path.join(tmpDir, `sticker_fallback_${Date.now()}.webp`);
+                // Detect large source to decide compression level
+                const fileSizeKB = mediaBuffer.length / 1024;
+                const isLargeFile = fileSizeKB > 5000; // 5MB
+                const fallbackCmd = isLargeFile
+                    ? `ffmpeg -y -i "${tempInput}" -t 2 -vf "scale=512:512:force_original_aspect_ratio=decrease,fps=8,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000" -c:v libwebp -preset default -loop 0 -vsync 0 -pix_fmt yuva420p -quality 30 -compression_level 6 -b:v 100k -max_muxing_queue_size 1024 "${tempOutput2}"`
+                    : `ffmpeg -y -i "${tempInput}" -t 3 -vf "scale=512:512:force_original_aspect_ratio=decrease,fps=12,pad=512:512:(ow-iw)/2:(oh-ih)/2:color=#00000000" -c:v libwebp -preset default -loop 0 -vsync 0 -pix_fmt yuva420p -quality 45 -compression_level 6 -b:v 150k -max_muxing_queue_size 1024 "${tempOutput2}"`;
+                await new Promise((resolve, reject) => {
+                    exec(fallbackCmd, (error) => error ? reject(error) : resolve());
+                });
+                if (fs.existsSync(tempOutput2)) {
+                    webpBuffer = fs.readFileSync(tempOutput2);
+                    try { fs.unlinkSync(tempOutput2); } catch {}
+                }
+            } catch {}
+        }
 
         // Add metadata using webpmux
         const img = new webp.Image();
@@ -111,12 +165,40 @@ async function stickerCommand(sock, chatId, message) {
         img.exif = exif;
 
         // Get the final buffer with metadata
-        const finalBuffer = await img.save(null);
+        let finalBuffer = await img.save(null);
+
+        // Final safety: if still too large, make a tiny 320/256px pass
+        if (isAnimated && finalBuffer.length > 900 * 1024) {
+            try {
+                const tempOutput3 = path.join(tmpDir, `sticker_small_${Date.now()}.webp`);
+                const smallCmd = `ffmpeg -y -i "${tempInput}" -t 2 -vf "scale=320:320:force_original_aspect_ratio=decrease,fps=8,pad=320:320:(ow-iw)/2:(oh-ih)/2:color=#00000000" -c:v libwebp -preset default -loop 0 -vsync 0 -pix_fmt yuva420p -quality 30 -compression_level 6 -b:v 80k -max_muxing_queue_size 1024 "${tempOutput3}"`;
+                await new Promise((resolve, reject) => {
+                    exec(smallCmd, (error) => error ? reject(error) : resolve());
+                });
+                if (fs.existsSync(tempOutput3)) {
+                    const smallWebp = fs.readFileSync(tempOutput3);
+                    const img2 = new webp.Image();
+                    await img2.load(smallWebp);
+                    const json2 = {
+                        'sticker-pack-id': crypto.randomBytes(32).toString('hex'),
+                        'sticker-pack-name': settings.packname || 'KnightBot',
+                        'emojis': ['🤖']
+                    };
+                    const exifAttr2 = Buffer.from([0x49, 0x49, 0x2A, 0x00, 0x08, 0x00, 0x00, 0x00, 0x01, 0x00, 0x41, 0x57, 0x07, 0x00, 0x00, 0x00, 0x00, 0x00, 0x16, 0x00, 0x00, 0x00]);
+                    const jsonBuffer2 = Buffer.from(JSON.stringify(json2), 'utf8');
+                    const exif2 = Buffer.concat([exifAttr2, jsonBuffer2]);
+                    exif2.writeUIntLE(jsonBuffer2.length, 14, 4);
+                    img2.exif = exif2;
+                    finalBuffer = await img2.save(null);
+                    try { fs.unlinkSync(tempOutput3); } catch {}
+                }
+            } catch {}
+        }
 
         // Send the sticker
         await sock.sendMessage(chatId, { 
             sticker: finalBuffer
-        });
+        },{ quoted: messageToQuote });
 
         // Cleanup temp files
         try {

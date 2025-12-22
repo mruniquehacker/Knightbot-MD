@@ -26,7 +26,8 @@ async function handleSsCommand(sock, chatId, message, match) {
         }
 
         // Call the API
-        const response = await fetch(`https://xploader-apis-5f424ea8f0da.herokuapp.com/screenshot?url=${encodeURIComponent(url)}&device=desktop`);
+        const apiUrl = `https://api.siputzx.my.id/api/tools/ssweb?url=${encodeURIComponent(url)}&theme=light&device=desktop`;
+        const response = await fetch(apiUrl, { headers: { 'accept': '*/*' } });
         
         if (!response.ok) {
             throw new Error(`API responded with status: ${response.status}`);

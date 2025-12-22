@@ -21,7 +21,7 @@ function formatTime(seconds) {
 async function pingCommand(sock, chatId, message) {
     try {
         const start = Date.now();
-        await sock.sendMessage(chatId, { text: 'Pong!' });
+        await sock.sendMessage(chatId, { text: 'Pong!' }, { quoted: message });
         const end = Date.now();
         const ping = Math.round((end - start) / 2);
 
@@ -36,7 +36,7 @@ async function pingCommand(sock, chatId, message) {
 ┗━━━━━━━━━━━━━━━━━━━┛`.trim();
 
         // Reply to the original message with the bot info
-        await sock.sendMessage(chatId, { text: botInfo, quoted: message });
+        await sock.sendMessage(chatId, { text: botInfo},{ quoted: message });
 
     } catch (error) {
         console.error('Error in ping command:', error);

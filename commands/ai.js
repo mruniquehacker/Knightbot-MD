@@ -8,6 +8,8 @@ async function aiCommand(sock, chatId, message) {
         if (!text) {
             return await sock.sendMessage(chatId, { 
                 text: "Please provide a question after .gpt or .gemini\n\nExample: .gpt write a basic html code"
+            }, {
+                quoted: message
             });
         }
 
@@ -19,7 +21,7 @@ async function aiCommand(sock, chatId, message) {
         if (!query) {
             return await sock.sendMessage(chatId, { 
                 text: "Please provide a question after .gpt or .gemini"
-            });
+            }, {quoted:message});
         }
 
         try {
@@ -30,10 +32,10 @@ async function aiCommand(sock, chatId, message) {
 
             if (command === '.gpt') {
                 // Call the GPT API
-                const response = await axios.get(`https://api.dreaded.site/api/chatgpt?text=${encodeURIComponent(query)}`);
+                const response = await axios.get(`https://zellapi.autos/ai/chatbot?text=${encodeURIComponent(query)}`);
                 
-                if (response.data && response.data.success && response.data.result) {
-                    const answer = response.data.result.prompt;
+                if (response.data && response.data.status && response.data.result) {
+                    const answer = response.data.result;
                     await sock.sendMessage(chatId, {
                         text: answer
                     }, {
@@ -48,7 +50,7 @@ async function aiCommand(sock, chatId, message) {
                     `https://vapis.my.id/api/gemini?q=${encodeURIComponent(query)}`,
                     `https://api.siputzx.my.id/api/ai/gemini-pro?content=${encodeURIComponent(query)}`,
                     `https://api.ryzendesu.vip/api/ai/gemini?text=${encodeURIComponent(query)}`,
-                    `https://api.dreaded.site/api/gemini2?text=${encodeURIComponent(query)}`,
+                    `https://zellapi.autos/ai/chatbot?text=${encodeURIComponent(query)}`,
                     `https://api.giftedtech.my.id/api/ai/geminiai?apikey=gifted&q=${encodeURIComponent(query)}`,
                     `https://api.giftedtech.my.id/api/ai/geminiaipro?apikey=gifted&q=${encodeURIComponent(query)}`
                 ];
@@ -82,6 +84,8 @@ async function aiCommand(sock, chatId, message) {
                     mentionedJid: [message.key.participant || message.key.remoteJid],
                     quotedMessage: message.message
                 }
+            }, {
+                quoted: message
             });
         }
     } catch (error) {
@@ -92,6 +96,8 @@ async function aiCommand(sock, chatId, message) {
                 mentionedJid: [message.key.participant || message.key.remoteJid],
                 quotedMessage: message.message
             }
+        }, {
+            quoted: message
         });
     }
 }

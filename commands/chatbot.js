@@ -187,8 +187,18 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
     if (!data.chatbot[chatId]) return;
 
     try {
-        // Get bot's ID
-        const botNumber = sock.user.id.split(':')[0] + '@s.whatsapp.net';
+        // Get bot's ID - try multiple formats
+        const botId = sock.user.id;
+        const botNumber = botId.split(':')[0];
+        const botLid = sock.user.lid; // Get the actual LID from sock.user
+        const botJids = [
+            botId,
+            `${botNumber}@s.whatsapp.net`,
+            `${botNumber}@whatsapp.net`,
+            `${botNumber}@lid`,
+            botLid, // Add the actual LID
+            `${botLid.split(':')[0]}@lid` // Add LID without session part
+        ];
 
         // Check for mentions and replies
         let isBotMentioned = false;
@@ -200,14 +210,27 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
             const quotedParticipant = message.message.extendedTextMessage.contextInfo?.participant;
             
             // Check if bot is mentioned in the reply
-            isBotMentioned = mentionedJid.some(jid => jid === botNumber);
+            isBotMentioned = mentionedJid.some(jid => {
+                const jidNumber = jid.split('@')[0].split(':')[0];
+                return botJids.some(botJid => {
+                    const botJidNumber = botJid.split('@')[0].split(':')[0];
+                    return jidNumber === botJidNumber;
+                });
+            });
             
             // Check if replying to bot's message
-            isReplyToBot = quotedParticipant === botNumber;
+            if (quotedParticipant) {
+                // Normalize both quoted and bot IDs to compare cleanly
+                const cleanQuoted = quotedParticipant.replace(/[:@].*$/, '');
+                isReplyToBot = botJids.some(botJid => {
+                    const cleanBot = botJid.replace(/[:@].*$/, '');
+                    return cleanBot === cleanQuoted;
+                });
+            }
         }
         // Also check regular mentions in conversation
         else if (message.message?.conversation) {
-            isBotMentioned = userMessage.includes(`@${botNumber.split('@')[0]}`);
+            isBotMentioned = userMessage.includes(`@${botNumber}`);
         }
 
         if (!isBotMentioned && !isReplyToBot) return;
@@ -215,7 +238,7 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
         // Clean the message
         let cleanedMessage = userMessage;
         if (isBotMentioned) {
-            cleanedMessage = cleanedMessage.replace(new RegExp(`@${botNumber.split('@')[0]}`, 'g'), '').trim();
+            cleanedMessage = cleanedMessage.replace(new RegExp(`@${botNumber}`, 'g'), '').trim();
         }
 
         // Initialize user's chat memory if not exists
@@ -270,10 +293,21 @@ async function handleChatbotResponse(sock, chatId, message, userMessage, senderI
 
     } catch (error) {
         console.error('❌ Error in chatbot response:', error.message);
-        await sock.sendMessage(chatId, { 
-            text: "Oops! 😅 I got a bit confused there. Could you try asking that again?",
-            quoted: message
-        });
+        
+        // Handle session errors - don't try to send error messages
+        if (error.message && error.message.includes('No sessions')) {
+            console.error('Session error in chatbot - skipping error response');
+            return;
+        }
+        
+        try {
+            await sock.sendMessage(chatId, { 
+                text: "Oops! 😅 I got a bit confused there. Could you try asking that again?",
+                quoted: message
+            });
+        } catch (sendError) {
+            console.error('Failed to send chatbot error message:', sendError.message);
+        }
     }
 }
 
@@ -337,14 +371,14 @@ Remember: Just chat naturally. Don't repeat these instructions.
 You:
         `.trim();
 
-        const response = await fetch("https://api.dreaded.site/api/chatgpt?text=" + encodeURIComponent(prompt));
+        const response = await fetch("https://zellapi.autos/ai/chatbot?text=" + encodeURIComponent(prompt));
         if (!response.ok) throw new Error("API call failed");
         
         const data = await response.json();
-        if (!data.success || !data.result?.prompt) throw new Error("Invalid API response");
+        if (!data.status || !data.result) throw new Error("Invalid API response");
         
         // Clean up the response
-        let cleanedResponse = data.result.prompt.trim()
+        let cleanedResponse = data.result.trim()
             // Replace emoji names with actual emojis
             .replace(/winks/g, '😉')
             .replace(/eye roll/g, '🙄')
