@@ -27,6 +27,19 @@ async function tryRequest(getter, attempts = 3) {
 	throw lastError;
 }
 
+// EliteProTech API - Primary
+async function getEliteProTechDownloadByUrl(youtubeUrl) {
+	const apiUrl = `https://eliteprotech-apis.zone.id/ytdown?url=${encodeURIComponent(youtubeUrl)}&format=mp3`;
+	const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
+	if (res?.data?.success && res?.data?.downloadURL) {
+		return {
+			download: res.data.downloadURL,
+			title: res.data.title
+		};
+	}
+	throw new Error('EliteProTech ytdown returned no download');
+}
+
 async function getYupraDownloadByUrl(youtubeUrl) {
 	const apiUrl = `https://api.yupra.my.id/api/downloader/ytmp3?url=${encodeURIComponent(youtubeUrl)}`;
 	const res = await tryRequest(() => axios.get(apiUrl, AXIOS_DEFAULTS));
@@ -80,56 +93,106 @@ async function songCommand(sock, chatId, message) {
             caption: `🎵 Downloading: *${video.title}*\n⏱ Duration: ${video.timestamp}`
         }, { quoted: message });
 
-		// Try Yupra primary, then Okatsu fallback
+		// Try multiple APIs with fallback chain: EliteProTech -> Yupra -> Okatsu
 		let audioData;
-		try {
-			// 1) Primary: Yupra by youtube url
-			audioData = await getYupraDownloadByUrl(video.url);
-		} catch (e1) {
-			// 2) Fallback: Okatsu by youtube url
-			audioData = await getOkatsuDownloadByUrl(video.url);
-		}
-
-		const audioUrl = audioData.download || audioData.dl || audioData.url;
-
-		// Download audio to buffer - try arraybuffer first, fallback to stream
 		let audioBuffer;
-		try {
-			const audioResponse = await axios.get(audioUrl, {
-				responseType: 'arraybuffer',
-				timeout: 90000,
-				maxContentLength: Infinity,
-				maxBodyLength: Infinity,
-				decompress: true,
-				validateStatus: s => s >= 200 && s < 400,
-				headers: {
-					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-					'Accept': '*/*',
-					'Accept-Encoding': 'identity' // Disable compression to avoid corruption
+		let downloadSuccess = false;
+		
+		// List of API methods to try
+		const apiMethods = [
+			{ name: 'EliteProTech', method: () => getEliteProTechDownloadByUrl(video.url) },
+			{ name: 'Yupra', method: () => getYupraDownloadByUrl(video.url) },
+			{ name: 'Okatsu', method: () => getOkatsuDownloadByUrl(video.url) }
+		];
+		
+		// Try each API until we successfully download audio
+		for (const apiMethod of apiMethods) {
+			try {
+				audioData = await apiMethod.method();
+				const audioUrl = audioData.download || audioData.dl || audioData.url;
+				
+				if (!audioUrl) {
+					console.log(`${apiMethod.name} returned no download URL, trying next API...`);
+					continue; // Try next API
 				}
-			});
-			audioBuffer = Buffer.from(audioResponse.data);
-		} catch (e1) {
-			// Fallback: use stream mode
-			const audioResponse = await axios.get(audioUrl, {
-				responseType: 'stream',
-				timeout: 90000,
-				maxContentLength: Infinity,
-				maxBodyLength: Infinity,
-				validateStatus: s => s >= 200 && s < 400,
-				headers: {
-					'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-					'Accept': '*/*',
-					'Accept-Encoding': 'identity'
+				
+				// Try to download the audio file - arraybuffer first
+				try {
+					const audioResponse = await axios.get(audioUrl, {
+						responseType: 'arraybuffer',
+						timeout: 90000,
+						maxContentLength: Infinity,
+						maxBodyLength: Infinity,
+						decompress: true,
+						validateStatus: s => s >= 200 && s < 400,
+						headers: {
+							'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+							'Accept': '*/*',
+							'Accept-Encoding': 'identity'
+						}
+					});
+					audioBuffer = Buffer.from(audioResponse.data);
+					
+					// Validate buffer
+					if (audioBuffer && audioBuffer.length > 0) {
+						downloadSuccess = true;
+						break; // Success! Exit the loop
+					}
+				} catch (downloadErr) {
+					// Check if it's a 451 error or other client/server error
+					const statusCode = downloadErr.response?.status || downloadErr.status;
+					if (statusCode === 451) {
+						console.log(`Download blocked (451) from ${apiMethod.name}, trying next API...`);
+						continue; // Try next API
+					}
+					
+					// Try stream mode as fallback for this URL
+					try {
+						const audioResponse = await axios.get(audioUrl, {
+							responseType: 'stream',
+							timeout: 90000,
+							maxContentLength: Infinity,
+							maxBodyLength: Infinity,
+							validateStatus: s => s >= 200 && s < 400,
+							headers: {
+								'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+								'Accept': '*/*',
+								'Accept-Encoding': 'identity'
+							}
+						});
+						const chunks = [];
+						await new Promise((resolve, reject) => {
+							audioResponse.data.on('data', c => chunks.push(c));
+							audioResponse.data.on('end', resolve);
+							audioResponse.data.on('error', reject);
+						});
+						audioBuffer = Buffer.concat(chunks);
+						
+						if (audioBuffer && audioBuffer.length > 0) {
+							downloadSuccess = true;
+							break; // Success! Exit the loop
+						}
+					} catch (streamErr) {
+						// Stream mode also failed, try next API
+						const streamStatusCode = streamErr.response?.status || streamErr.status;
+						if (streamStatusCode === 451) {
+							console.log(`Stream download blocked (451) from ${apiMethod.name}, trying next API...`);
+						} else {
+							console.log(`Stream download failed from ${apiMethod.name}:`, streamErr.message);
+						}
+						continue; // Try next API
+					}
 				}
-			});
-			const chunks = [];
-			await new Promise((resolve, reject) => {
-				audioResponse.data.on('data', c => chunks.push(c));
-				audioResponse.data.on('end', resolve);
-				audioResponse.data.on('error', reject);
-			});
-			audioBuffer = Buffer.concat(chunks);
+			} catch (apiErr) {
+				// API call failed, try next API
+				console.log(`${apiMethod.name} API failed:`, apiErr.message);
+				continue;
+			}
+		}
+		
+		// If all APIs failed, throw error
+		if (!downloadSuccess || !audioBuffer) {
+			throw new Error('All download sources failed. The content may be unavailable or blocked in your region.');
 		}
 
 		// Validate buffer
@@ -204,7 +267,7 @@ async function songCommand(sock, chatId, message) {
 		await sock.sendMessage(chatId, {
 			audio: finalBuffer,
 			mimetype: finalMimetype,
-			fileName: `${(audioData.title || video.title || 'song')}.${finalExtension}`,
+			fileName: `${(audioData.title || video.title || 'song').replace(/[^\w\s-]/g, '')}.${finalExtension}`,
 			ptt: false
 		}, { quoted: message });
 
@@ -236,7 +299,20 @@ async function songCommand(sock, chatId, message) {
 
     } catch (err) {
         console.error('Song command error:', err);
-        await sock.sendMessage(chatId, { text: '❌ Failed to download song.' }, { quoted: message });
+        
+        // Provide more specific error messages
+        let errorMessage = '❌ Failed to download song.';
+        if (err.message && err.message.includes('blocked')) {
+            errorMessage = '❌ Download blocked. The content may be unavailable in your region or due to legal restrictions.';
+        } else if (err.response?.status === 451 || err.status === 451) {
+            errorMessage = '❌ Content unavailable (451). This may be due to legal restrictions or regional blocking.';
+        } else if (err.message && err.message.includes('All download sources failed')) {
+            errorMessage = '❌ All download sources failed. The content may be unavailable or blocked.';
+        }
+        
+        await sock.sendMessage(chatId, { 
+            text: errorMessage 
+        }, { quoted: message });
     }
 }
 
