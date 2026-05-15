@@ -140,9 +140,7 @@ It is lightweight and can be easily customized to add more commands as per your 
 ### Prerequisites
 
 - Node.js installed on your system
-- Git installed (for cloning the repository)
-
-### Step-by-Step Setup
+- Git installed (for cloning the reposito
 
 1. **Clone the repository:**
 
