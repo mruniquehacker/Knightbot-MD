@@ -17,6 +17,12 @@ const FileType = require('file-type')
 const path = require('path')
 const axios = require('axios')
 const { handleMessages, handleGroupParticipantUpdate, handleStatus } = require('./main');
+const { createConfig, validateConfig } = require('./core/config');
+const { createStore } = require('./core/store');
+const { createAiProvider } = require('./core/ai');
+const { createAssistant } = require('./core/assistant');
+const { createRateLimiter } = require('./core/rate-limit');
+const { createLogger } = require('./core/logger');
 const PhoneNumber = require('awesome-phonenumber')
 const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./lib/exif')
 const { smsg, isUrl, generateMessageTag, getBuffer, getSizeMedia, fetch, await, sleep, reSize } = require('./lib/myfunc')
@@ -52,14 +58,32 @@ const store = makeInMemoryStore({
     })
 })
 
-let phoneNumber = "911234567890"
-let owner = JSON.parse(fs.readFileSync('./database/owner.json'))
+const assistantConfig = createConfig();
+const configValidation = validateConfig(assistantConfig);
+if (!configValidation.valid) {
+    for (const error of configValidation.errors) console.error(`[config] ${error}`);
+    throw new Error('Invalid configuration');
+}
+for (const warning of configValidation.warnings) console.warn(`[config] ${warning}`);
+const assistantStore = createStore(assistantConfig.dataPath);
+const assistantLogger = createLogger(assistantConfig);
+const assistantRateLimiter = createRateLimiter({ windowMs: assistantConfig.rateLimitWindowMs, max: assistantConfig.rateLimitMax });
+const assistant = createAssistant({
+    config: assistantConfig,
+    store: assistantStore,
+    aiProvider: createAiProvider(assistantConfig),
+    logger: assistantLogger,
+    rateLimiter: assistantRateLimiter,
+});
+const owner = assistantConfig.ownerNumber;
 
-global.botname = "KNIGHT BOT"
+global.botname = assistantConfig.botName
 global.themeemoji = "•"
 
-const pairingCode = !!phoneNumber || process.argv.includes("--pairing-code")
+const pairingCode = process.argv.includes("--pairing-code") || process.env.PAIRING_CODE === 'true'
 const useMobile = process.argv.includes("--mobile")
+let reconnectAttempts = 0
+let reconnectTimer = null
 
 const rl = readline.createInterface({ input: process.stdin, output: process.stdout })
 const question = (text) => new Promise((resolve) => rl.question(text, resolve))
@@ -95,14 +119,17 @@ async function startXeonBotInc() {
     XeonBotInc.ev.on('messages.upsert', async chatUpdate => {
         try {
             const mek = chatUpdate.messages[0]
-            if (!mek.message) return
+            if (!mek?.message) return
+
+            const assistantHandled = await assistant.handleMessage(XeonBotInc, chatUpdate)
+            if (assistantHandled) return
             mek.message = (Object.keys(mek.message)[0] === 'ephemeralMessage') ? mek.message.ephemeralMessage.message : mek.message
             if (mek.key && mek.key.remoteJid === 'status@broadcast') {
                 await handleStatus(XeonBotInc, chatUpdate);
                 return;
             }
             if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === 'notify') return
-            if (mek.key.id.startsWith('BAE5') && mek.key.id.length === 16) return
+            if (mek.key?.id?.startsWith('BAE5') && mek.key.id.length === 16) return
             
             try {
                 await handleMessages(XeonBotInc, chatUpdate, true)
@@ -171,14 +198,13 @@ async function startXeonBotInc() {
     if (pairingCode && !XeonBotInc.authState.creds.registered) {
         if (useMobile) throw new Error('Cannot use pairing code with mobile api')
 
-        let phoneNumber
-        if (!!global.phoneNumber) {
-            phoneNumber = global.phoneNumber
-        } else {
-            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Please type your WhatsApp number 😍\nFor example: +917023951514 : `)))
+        let phoneNumber = process.env.PAIRING_PHONE_NUMBER || ''
+        if (!phoneNumber) {
+            phoneNumber = await question(chalk.bgBlack(chalk.greenBright(`Please type your WhatsApp number in international format: `)))
         }
 
         phoneNumber = phoneNumber.replace(/[^0-9]/g, '')
+        if (!phoneNumber) throw new Error('A valid pairing phone number is required')
 
         // Request pairing code
         setTimeout(async () => {
@@ -192,41 +218,29 @@ async function startXeonBotInc() {
     XeonBotInc.ev.on('connection.update', async (s) => {
         const { connection, lastDisconnect } = s
         if (connection == "open") {
-            console.log(chalk.magenta(` `))
-            console.log(chalk.yellow(`🌿Connected to => ` + JSON.stringify(XeonBotInc.user, null, 2)))
-            
-            // Send message to bot's own number
-            const botNumber = XeonBotInc.user.id.split(':')[0] + '@s.whatsapp.net';
-            await XeonBotInc.sendMessage(botNumber, { 
-                text: `🤖 Bot Connected Successfully!\n\n⏰ Time: ${new Date().toLocaleString()}\n✅ Status: Online and Ready!
-                \n Give a Star ⭐ to our bot:\n https://github.com/mruniquehacker/KnightBot-MD\n ✅Make sure to join below channel`,
-                contextInfo: {
-                    forwardingScore: 999,
-                    isForwarded: true,
-                    forwardedNewsletterMessageInfo: {
-                        newsletterJid: '120363161513685998@newsletter',
-                        newsletterName: 'KnightBot MD',
-                        serverMessageId: -1
-                    }
-                }
-            });
-
-            await delay(1999)
-            console.log(chalk.yellow(`\n\n                  ${chalk.bold.blue(`[ ${global.botname || 'KNIGHT BOT'} ]`)}\n\n`))
-            console.log(chalk.cyan(`< ================================================== >`))
-            console.log(chalk.magenta(`\n${global.themeemoji || '•'} YT CHANNEL: MR UNIQUE HACKER`))
-            console.log(chalk.magenta(`${global.themeemoji || '•'} GITHUB: mrunqiuehacker`))
-            console.log(chalk.magenta(`${global.themeemoji || '•'} WA NUMBER: ${owner}`))
-            console.log(chalk.magenta(`${global.themeemoji || '•'} CREDIT: MR UNIQUE HACKER`))
-            console.log(chalk.green(`${global.themeemoji || '•'} 🤖 Bot Connected Successfully! ✅`))
+            reconnectAttempts = 0
+            const connectedJid = XeonBotInc.user?.id || '';
+            assistantLogger.info('whatsapp_connected', { hasIdentity: Boolean(connectedJid), mode: assistantStore.getMode() });
+            if (assistantConfig.sendConnectMessage && connectedJid) {
+                const botNumber = connectedJid.split(':')[0] + '@s.whatsapp.net';
+                await XeonBotInc.sendMessage(botNumber, { text: `${assistantConfig.botName} is connected and ready.` });
+            }
+            console.log(chalk.green(`${assistantConfig.botName} connected successfully.`))
         }
-        if (
-            connection === "close" &&
-            lastDisconnect &&
-            lastDisconnect.error &&
-            lastDisconnect.error.output.statusCode != 401
-        ) {
-            startXeonBotInc()
+        if (connection === "close") {
+            const statusCode = lastDisconnect?.error?.output?.statusCode
+            if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
+                assistantLogger.error('whatsapp_logged_out', { statusCode })
+                return
+            }
+            if (reconnectTimer) return
+            const delayMs = Math.min(60_000, 1_000 * (2 ** Math.min(reconnectAttempts, 6)))
+            reconnectAttempts += 1
+            assistantLogger.warn('whatsapp_reconnect_scheduled', { delayMs, statusCode })
+            reconnectTimer = setTimeout(() => {
+                reconnectTimer = null
+                startXeonBotInc().catch((error) => assistantLogger.error('whatsapp_reconnect_failed', { error: error.message }))
+            }, delayMs)
         }
     })
 
@@ -236,13 +250,6 @@ async function startXeonBotInc() {
     XeonBotInc.ev.on('group-participants.update', async (update) => {
         console.log('Group Update Event:', JSON.stringify(update, null, 2));  // Add this line to debug
         await handleGroupParticipantUpdate(XeonBotInc, update);
-    });
-
-    // Add status update handlers
-    XeonBotInc.ev.on('messages.upsert', async (m) => {
-        if (m.messages[0].key && m.messages[0].key.remoteJid === 'status@broadcast') {
-            await handleStatus(XeonBotInc, m);
-        }
     });
 
     // Handle status updates

@@ -7,6 +7,12 @@ const { fetchBuffer } = require('./lib/myfunc');
 const ytdl = require('./lib/ytdl2');
 const fs = require('fs');
 const fetch = require('node-fetch');
+const { createConfig } = require('./core/config');
+const { createStore } = require('./core/store');
+const { isOwner } = require('./core/security');
+
+const assistantConfig = createConfig();
+const assistantStore = createStore(assistantConfig.dataPath);
 
 // Command imports
 const tagAllCommand = require('./commands/tagall');
@@ -191,18 +197,8 @@ async function handleMessages(sock, messageUpdate, printLog) {
             }
         }
 
-        // Add this near the start of your message handling logic, before processing commands
-        try {
-            const data = JSON.parse(fs.readFileSync('./data/messageCount.json'));
-            const senderNumber = senderId.split('@')[0];
-            // Allow owner to use bot even in private mode
-            if (!data.isPublic && senderNumber !== settings.ownerNumber) {
-                return; // Silently ignore messages from non-owners when in private mode
-            }
-        } catch (error) {
-            console.error('Error checking access mode:', error);
-            // Default to public mode if there's an error reading the file
-        }
+        // Legacy commands share the assistant's persisted access mode.
+        if (assistantStore.getMode() === 'private' && !isOwner(senderId, assistantConfig)) return;
 
         // Command handlers
         switch (true) {

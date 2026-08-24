@@ -5,7 +5,9 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --test",
+    "test:changed": "node --test test/core.test.js",
+    "check:syntax": "find core commands -type f -name '*.js' -print0 | xargs -0 -n1 node --check",
     "docker:build": "docker build -t knightbot .",
     "docker:run": "docker run -e SESSION_ID=$SESSION_ID knightbot"
   },

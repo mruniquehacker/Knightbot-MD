@@ -1,8 +1,13 @@
-version: '3'
 services:
   bot:
     build: .
+    restart: unless-stopped
+    env_file:
+      - .env
     environment:
-      - SESSION_ID=${SESSION_ID}
+      NODE_ENV: production
+      DATA_PATH: /app/data/levanter-state.json
     volumes:
-      - ./sessions:/app/sessions
+      - ./session:/app/session
+      - ./data:/app/data
+      - ./database:/app/database
