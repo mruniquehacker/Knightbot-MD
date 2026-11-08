@@ -17,6 +17,7 @@ const FileType = require('file-type')
 const path = require('path')
 const axios = require('axios')
 const { handleMessages, handleGroupParticipantUpdate, handleStatus } = require('./main');
+const { handleAntibotDetection } = require('./commands/antibot');
 const PhoneNumber = require('awesome-phonenumber')
 const { imageToWebp, videoToWebp, writeExifImg, writeExifVid } = require('./lib/exif')
 const { smsg, isUrl, generateMessageTag, getBuffer, getSizeMedia, fetch, await, sleep, reSize } = require('./lib/myfunc')
@@ -140,6 +141,14 @@ async function startXeonBotInc() {
             if (!XeonBotInc.public && !mek.key.fromMe && chatUpdate.type === 'notify') {
                 const isGroup = mek.key?.remoteJid?.endsWith('@g.us')
                 if (!isGroup) return // Block DMs in private mode, but allow group messages
+            }
+            // Antibot must run before BAE5 drop — those IDs are exactly other Baileys bots
+            if (mek.key?.remoteJid?.endsWith('@g.us') && !mek.key.fromMe) {
+                try {
+                    await handleAntibotDetection(XeonBotInc, mek)
+                } catch (abErr) {
+                    console.error('[antibot] upsert hook:', abErr?.message || abErr)
+                }
             }
             if (mek.key.id.startsWith('BAE5') && mek.key.id.length === 16) return
 
@@ -291,12 +300,25 @@ async function startXeonBotInc() {
         }
         
         if (connection === 'close') {
-            const shouldReconnect = (lastDisconnect?.error)?.output?.statusCode !== DisconnectReason.loggedOut
             const statusCode = lastDisconnect?.error?.output?.statusCode
-            
+            const errMsg = String(lastDisconnect?.error?.message || lastDisconnect?.error || '')
+            const isLoggedOut = statusCode === DisconnectReason.loggedOut || statusCode === 401
+            const isConflict =
+                statusCode === DisconnectReason.connectionReplaced ||
+                statusCode === 440 ||
+                /conflict|replaced/i.test(errMsg)
+            const shouldReconnect = !isLoggedOut && !isConflict
+
             console.log(chalk.red(`Connection closed due to ${lastDisconnect?.error}, reconnecting ${shouldReconnect}`))
-            
-            if (statusCode === DisconnectReason.loggedOut || statusCode === 401) {
+
+            if (isConflict) {
+                // Another WhatsApp Web / bot instance took the session — do NOT wipe auth
+                console.log(chalk.yellow('⚠️ Session conflict: another device/instance connected.'))
+                console.log(chalk.yellow('   Stop other `node .` / WhatsApp Web linked sessions, then start the bot once.'))
+                return
+            }
+
+            if (isLoggedOut) {
                 try {
                     rmSync('./session', { recursive: true, force: true })
                     console.log(chalk.yellow('Session folder deleted. Please re-authenticate.'))
@@ -304,8 +326,9 @@ async function startXeonBotInc() {
                     console.error('Error deleting session:', error)
                 }
                 console.log(chalk.red('Session logged out. Please re-authenticate.'))
+                return
             }
-            
+
             if (shouldReconnect) {
                 console.log(chalk.yellow('Reconnecting...'))
                 await delay(5000)
