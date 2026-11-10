@@ -31,6 +31,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .groupinfo
 ║ ➤ .staff or .admins 
 ║ ➤ .vv
+║ ➤ .vv2
 ║ ➤ .trt <text> <lang>
 ║ ➤ .ss <link>
 ║ ➤ .jid
@@ -60,9 +61,11 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .antitag <on/off>
 ║ ➤ .welcome <on/off>
 ║ ➤ .goodbye <on/off>
+║ ➤ .antibot <on/off/set/get>
 ║ ➤ .setgdesc <description>
 ║ ➤ .setgname <new name>
 ║ ➤ .setgpp (reply to image)
+║ ➤ .groupstatus [caption/text]
 ╚═══════════════════╝
 
 ╔═══════════════════╗
@@ -77,6 +80,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .autoreact <on/off>
 ║ ➤ .autostatus <on/off>
 ║ ➤ .autostatus react <on/off>
+║ ➤ .savestatus [on/off]
 ║ ➤ .autotyping <on/off>
 ║ ➤ .autoread <on/off>
 ║ ➤ .anticall <on/off>
@@ -93,7 +97,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .sticker <reply to image>
 ║ ➤ .removebg
 ║ ➤ .remini
-║ ➤ .crop <reply to image>
+║ ➤ .crop (reply sticker/image/video)
 ║ ➤ .tgsticker <Link>
 ║ ➤ .meme
 ║ ➤ .take <packname> 
@@ -125,6 +129,7 @@ async function helpCommand(sock, chatId, message) {
 
 ╔═══════════════════╗
 🤖 *AI Commands*:
+║ ➤ .ai <question>
 ║ ➤ .gpt <question>
 ║ ➤ .gemini <question>
 ║ ➤ .imagine <prompt>
@@ -176,6 +181,7 @@ async function helpCommand(sock, chatId, message) {
 ║ ➤ .spotify <query>
 ║ ➤ .instagram <link>
 ║ ➤ .facebook <link>
+║ ➤ .twitter <link>
 ║ ➤ .tiktok <link>
 ║ ➤ .video <song name>
 ║ ➤ .ytmp4 <Link>
