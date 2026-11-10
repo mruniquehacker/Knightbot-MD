@@ -8,5 +8,5 @@
   "welcome": {},
   "goodbye": {},
   "chatbot": {},
-  "autoReaction": false
+  "autoReaction": true
 }
