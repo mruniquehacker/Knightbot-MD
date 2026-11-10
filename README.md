@@ -22,9 +22,37 @@ This is a WhatsApp bot built using the Baileys library for group management, inc
 </div>
 
 ---
-<div>
+
+## 🤝 Sponsors
+
+### Swiftproxy
+<div align="center">
+  <a href="https://www.swiftproxy.net/?ref=Knightbot" target="_blank">
+    <img src="assets/swift.png" alt="Swiftproxy" width="520" />
+  </a>
+</div>
+
+<br>
+
+<div align="left">
+  <a href="https://www.swiftproxy.net/?ref=Knightbot" target="_blank"><b>Swiftproxy</b></a> provides 90M+ residential IPs across 220+ locations worldwide, helping developers maintain reliable connections for WhatsApp bot hosting, automation, and location-specific web access. Supports rotating and static residential proxies, HTTP(S), and SOCKS5.<br><br>
+  <b>Special Offer:</b> Free testing available, with 10% off using code <b>PROXY90</b>.
+</div>
+
+<br>
+
+<div align="left">
+  <a href="https://www.swiftproxy.net/?ref=Knightbot" target="_blank">
+    <img src="https://img.shields.io/badge/Try%20Swiftproxy-2563EB?style=for-the-badge" alt="Try Swiftproxy"/>
+  </a>
+</div>
+
+<br>
+
+### RapidProxy
+<div align="center">
   <a href="https://www.rapidproxy.io/?ref=Knightbot" target="_blank">
-    <img src="assets/rapid.jpg" alt="RapidProxy" width="100%" />
+    <img src="assets/rapid.jpg" alt="RapidProxy" width="520" />
   </a>
 </div>
 
@@ -40,10 +68,21 @@ This is a WhatsApp bot built using the Baileys library for group management, inc
 
 <div align="left">
   <a href="https://www.rapidproxy.io/?ref=Knightbot" target="_blank">
-    <img src="https://img.shields.io/badge/Try now-28a745?style=for-the-badge" alt="Try now"/>
+    <img src="https://img.shields.io/badge/Try%20now-28a745?style=for-the-badge" alt="Try now"/>
   </a>
 </div>
 
+<br>
+
+### Petrosky VPS
+<div align="left">
+  Reliable VPS hosting for WhatsApp bots and 24/7 panels. Deploy Knight Bot on a stable server with easy management.<br><br>
+  <a href="https://client.petrosky.io/aff.php?aff=394" target="_blank">
+    <img src="https://img.shields.io/badge/Petrosky%20VPS-0078E7?style=for-the-badge" alt="Petrosky VPS"/>
+  </a>
+</div>
+
+---
 
 ## 🚀 Steps to Deploy Bot
 
@@ -110,6 +149,9 @@ For further customization and setup guidance, click the button below:
   </a>
   <a href="https://whatsapp.com/channel/0029Va90zAnIHphOuO8Msp3A">
     <img src="https://img.shields.io/badge/Join%20WhatsApp-25D366?style=for-the-badge&logo=whatsapp&logoColor=white" alt="Join WhatsApp"/>
+  </a>
+  <a href="mailto:itsurboyvk@gmail.com">
+    <img src="https://img.shields.io/badge/Contact-itsurboyvk%40gmail.com-EA4335?style=for-the-badge&logo=gmail&logoColor=white" alt="Contact"/>
   </a>
 </div>
 
