@@ -1,17 +1,25 @@
-const settings = require('../settings');
+require('dotenv').config();
 
-async function ownerCommand(sock, chatId) {
-    const vcard = `
-BEGIN:VCARD
-VERSION:3.0
-FN:${settings.botOwner}
-TEL;waid=${settings.ownerNumber}:${settings.ownerNumber}
-END:VCARD
-`;
+const settings = {
+    packname: 'Kartik Editz',
+    author: 'Kartik Das',
+    botName: "KA-BOT-MD",
+    botOwner: 'Kartik Editz',
+    ownerNumber: '917602230748',
+    giphyApiKey: 'qnl7ssQChTdPjskTa2Ax2LMaGXz303tq',
+    commandMode: "public",
+    maxStoreMessages: 20,
+    storeWriteInterval: 10000,
+    description: "This is an advanced WhatsApp bot managed by Kartik Editz.",
+    version: "3.0.8",
+    updateZipUrl: "https://github.com/mruniquehacker/KnightBot/archive/refs/heads/main.zip",
+    knightApiUrl: process.env.KNIGHT_API_URL || 'https://knight-api.stream',
+    knightApiKey: process.env.KNIGHT_API_KEY || 'knight',
+    mediaApiUrl: process.env.MEDIA_API_URL || 'https://media-api.stream',
+    mediaApiKey: process.env.MEDIA_API_KEY || 'knight',
+    princeApiUrl: process.env.PRINCE_API_URL || 'https://prince-api.techn.com',
+    princeApiKey: process.env.PRINCE_API_KEY || 'prince'
+};
 
-    await sock.sendMessage(chatId, {
-        contacts: { displayName: settings.botOwner, contacts: [{ vcard }] },
-    });
-}
+module.exports = settings;
 
-module.exports = ownerCommand;
