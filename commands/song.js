@@ -219,3 +219,5 @@ async function songCommand(sock, chatId, message) {
 }
 
 module.exports = songCommand;
+
+New var MENTION added as {"linkPreview": {"head": "»»»̰͎̰͗ͩ̌̽̿̎̂𝐍𝐎𝐕𝐀🤍🍒»»»流ドギ","body": "↺ 𝟎:𝟓𝟖 ──♡─────────── 𝟑:𝟒𝟕","showAdAttribution": true,"renderLargerThumbnail": true,"mediaType": 1,"thumbnail": "https://files.catbox.moe/krk3x4.jpeg",         "sourceUrl": "https://www.instagram.com/mr__novhha?igsh=cjdpY3o4bDAxdHE1"},"waveform": [ 90,0,90,0,90 ] }.
