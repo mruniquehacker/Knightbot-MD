@@ -1,11 +1,11 @@
 require('dotenv').config();
 
 const settings = {
-  packname: 'Knight Bot',
+  packname: 'mr cool charming Bot',
   author: '‎',
-  botName: "Knight Bot",
+  botName: "mr cool charming Bot",
   botOwner: 'Professor', // Your name
-  ownerNumber: '919876543210', //Set your number here without + symbol, just add country code & number without any space
+  ownerNumber: '7034763045', //Set your number here without + symbol, just add country code & number without any space
   giphyApiKey: 'qnl7ssQChTdPjsKta2Ax2LMaGXz303tq',
   commandMode: "public",
   maxStoreMessages: 20, 
