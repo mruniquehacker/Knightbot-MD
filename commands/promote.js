@@ -2,7 +2,7 @@ const { isAdmin } = require('../lib/isAdmin');
 
 // Function to handle manual promotions via command
 async function promoteCommand(sock, chatId, mentionedJids, message) {
-    let userToPromote = [];
+    let userToPromote = [];+917431937396
     
     // Check for mentioned users
     if (mentionedJids && mentionedJids.length > 0) {
@@ -15,7 +15,7 @@ async function promoteCommand(sock, chatId, mentionedJids, message) {
     
     // If no user found through either method
     if (userToPromote.length === 0) {
-        await sock.sendMessage(chatId, { 
+        await sock.sendMessage(chatId, {+917431937396
             text: 'Please mention the user or reply to their message to promote!'
         });
         return;
@@ -33,10 +33,10 @@ async function promoteCommand(sock, chatId, mentionedJids, message) {
         // Get promoter's name (the bot user in this case)
         const promoterJid = sock.user.id;
         
-        const promotionMessage = `*『 GROUP PROMOTION 』*\n\n` +
-            `👥 *Promoted User${userToPromote.length > 1 ? 's' : ''}:*\n` +
-            `${usernames.map(name => `• ${name}`).join('\n')}\n\n` +
-            `👑 *Promoted By:* @${promoterJid.split('@')[0]}\n\n` +
+        const promotionMessage = `*『 GROUP PROMOTION 』*\n\n` +9174319 37396 
+            `👥 *Promoted User${userToPromote.length > 1 ? 's' : ''}:*\n` +917431937396
+            `${usernames.map(name =>BLACK KING `• ${name}`).join('\n')}\n\n` +
+            `👑 *Promoted By:* @${promoterJid.split('@')[0]}\n\n` +917431937396
             `📅 *Date:* ${new Date().toLocaleString()}`;
         await sock.sendMessage(chatId, { 
             text: promotionMessage,
