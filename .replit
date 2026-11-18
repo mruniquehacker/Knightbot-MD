@@ -1,0 +1,14 @@
+modules = ["nodejs-20"]
+[agent]
+expertMode = true
+stack = "BEST_EFFORT_FALLBACK"
+
+[nix]
+channel = "stable-25_05"
+
+[workflows]
+
+[deployment]
+deploymentTarget = "vm"
+run = ["node", "index.js"]
+ignorePorts = true
