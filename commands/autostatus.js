@@ -156,7 +156,7 @@ async function reactToStatus(sock, statusKey) {
                         participant: statusKey.participant || statusKey.remoteJid,
                         fromMe: false
                     },
-                    text: '💚'
+                    text: '💖'
                 }
             },
             {
