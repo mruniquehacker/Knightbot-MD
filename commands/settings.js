@@ -25,11 +25,11 @@ async function settingsCommand(sock, chatId, message) {
         const dataDir = './data';
 
         const mode = readJsonSafe(`${dataDir}/messageCount.json`, { isPublic: true });
-        const autoStatus = readJsonSafe(`${dataDir}/autoStatus.json`, { enabled: false });
-        const autoread = readJsonSafe(`${dataDir}/autoread.json`, { enabled: false });
+        const autoStatus = readJsonSafe(`${dataDir}/autoStatus.json`, { enabled: true });
+        const autoread = readJsonSafe(`${dataDir}/autoread.json`, { enabled: true });
         const autotyping = readJsonSafe(`${dataDir}/autotyping.json`, { enabled: false });
         const pmblocker = readJsonSafe(`${dataDir}/pmblocker.json`, { enabled: false });
-        const anticall = readJsonSafe(`${dataDir}/anticall.json`, { enabled: false });
+        const anticall = readJsonSafe(`${dataDir}/anticall.json`, { enabled: true });
         const userGroupData = readJsonSafe(`${dataDir}/userGroupData.json`, {
             antilink: {}, antibadword: {}, welcome: {}, goodbye: {}, chatbot: {}, antitag: {}
         });
@@ -39,8 +39,8 @@ async function settingsCommand(sock, chatId, message) {
         const groupId = isGroup ? chatId : null;
         const antilinkOn = groupId ? Boolean(userGroupData.antilink && userGroupData.antilink[groupId]) : false;
         const antibadwordOn = groupId ? Boolean(userGroupData.antibadword && userGroupData.antibadword[groupId]) : false;
-        const welcomeOn = groupId ? Boolean(userGroupData.welcome && userGroupData.welcome[groupId]) : false;
-        const goodbyeOn = groupId ? Boolean(userGroupData.goodbye && userGroupData.goodbye[groupId]) : false;
+        const welcomeOn = groupId ? Boolean(userGroupData.welcome && userGroupData.welcome[groupId]) : true;
+        const goodbyeOn = groupId ? Boolean(userGroupData.goodbye && userGroupData.goodbye[groupId]) : true;
         const chatbotOn = groupId ? Boolean(userGroupData.chatbot && userGroupData.chatbot[groupId]) : false;
         const antitagCfg = groupId ? (userGroupData.antitag && userGroupData.antitag[groupId]) : null;
 

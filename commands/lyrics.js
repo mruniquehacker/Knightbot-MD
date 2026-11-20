@@ -1,42 +1,76 @@
 const fetch = require('node-fetch');
 
+async function getLyrics(songTitle) {
+    const apis = [
+        // Primary API
+        `https://lyricsapi.fly.dev/api/lyrics?q=${encodeURIComponent(songTitle)}`,
+        // Fallback 1
+        `https://api.lyrics.ovh/v1/${encodeURIComponent(songTitle.split('-')[0] || songTitle)}/${encodeURIComponent(songTitle.split('-')[1] || '')}`,
+        // Fallback 2
+        `https://some-random-api.com/lyrics?title=${encodeURIComponent(songTitle)}`
+    ];
+
+    for (const api of apis) {
+        try {
+            const res = await fetch(api, { timeout: 10000 });
+            if (!res.ok) continue;
+
+            const data = await res.json();
+
+            // Handle different API response formats
+            if (data?.result?.lyrics) return data.result.lyrics;
+            if (data?.lyrics) return data.lyrics;
+            if (data?.data?.lyrics) return data.data.lyrics;
+
+        } catch (e) {
+            console.log('Lyrics API failed:', api);
+        }
+    }
+
+    return null;
+}
+
 async function lyricsCommand(sock, chatId, songTitle, message) {
     if (!songTitle) {
-        await sock.sendMessage(chatId, { 
-            text: '🔍 Please enter the song name to get the lyrics! Usage: *lyrics <song name>*'
-        },{ quoted: message });
-        return;
+        return await sock.sendMessage(
+            chatId,
+            { text: '🔍 Please enter the song name!\nExample: *.lyrics Faded Alan Walker*' },
+            { quoted: message }
+        );
     }
 
     try {
-        // Use lyricsapi.fly.dev and return only the raw lyrics text
-        const apiUrl = `https://lyricsapi.fly.dev/api/lyrics?q=${encodeURIComponent(songTitle)}`;
-        const res = await fetch(apiUrl);
-        
-        if (!res.ok) {
-            const errText = await res.text();
-            throw errText;
-        }
-        
-        const data = await res.json();
+        await sock.sendMessage(chatId, { text: '🎵 Searching lyrics...' }, { quoted: message });
 
-        const lyrics = data && data.result && data.result.lyrics ? data.result.lyrics : null;
+        const lyrics = await getLyrics(songTitle);
+
         if (!lyrics) {
-            await sock.sendMessage(chatId, {
-                text: `❌ Sorry, I couldn't find any lyrics for "${songTitle}".`
-            },{ quoted: message });
-            return;
+            return await sock.sendMessage(
+                chatId,
+                { text: `❌ No lyrics found for: *${songTitle}*` },
+                { quoted: message }
+            );
         }
 
+        // WhatsApp text limit protection
         const maxChars = 4096;
-        const output = lyrics.length > maxChars ? lyrics.slice(0, maxChars - 3) + '...' : lyrics;
+        if (lyrics.length <= maxChars) {
+            return await sock.sendMessage(chatId, { text: lyrics }, { quoted: message });
+        }
 
-        await sock.sendMessage(chatId, { text: output }, { quoted: message });
+        // Split long lyrics into parts
+        for (let i = 0; i < lyrics.length; i += maxChars) {
+            const part = lyrics.slice(i, i + maxChars);
+            await sock.sendMessage(chatId, { text: part }, { quoted: message });
+        }
+
     } catch (error) {
-        console.error('Error in lyrics command:', error);
-        await sock.sendMessage(chatId, { 
-            text: `❌ An error occurred while fetching the lyrics for "${songTitle}".`
-        },{ quoted: message });
+        console.error('Lyrics Command Error:', error);
+        await sock.sendMessage(
+            chatId,
+            { text: '❌ Error fetching lyrics. Try another song name.' },
+            { quoted: message }
+        );
     }
 }
 
