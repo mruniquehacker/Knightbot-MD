@@ -8,6 +8,7 @@ Micro-SaaS pour aider les commerces locaux à obtenir plus d'avis Google.
 |---|---|
 | `index.html` | Page d'accueil (offre, démo, tarifs, FAQ) |
 | `creer.html` | Le commerçant crée son lien et son QR code |
+| `affiche.html` | Affiche A5 à imprimer (QR code, couleur, logo), exportable en PDF |
 | `avis.html` | La page que voit le client (note, puis Google ou retour privé sur WhatsApp) |
 
 Aucun serveur ni base de données : toute la configuration du commerce est dans l'URL

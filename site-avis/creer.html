@@ -47,6 +47,7 @@
           <button class="btn small" type="button" id="copy">Copier</button>
         </div>
         <div class="cta-row" style="justify-content:center">
+          <a class="btn small" id="poster" target="_blank" rel="noopener">🖨️ Créer mon affiche</a>
           <a class="btn ghost small" id="open" target="_blank" rel="noopener">Tester ma page</a>
           <button class="btn ghost small" type="button" id="dl">Télécharger le QR code</button>
           <a class="btn ghost small" id="share" target="_blank" rel="noopener">Partager sur WhatsApp</a>
@@ -81,6 +82,10 @@
 
       $('link').value = link;
       $('open').href = link;
+      const posterUrl = new URL('affiche.html', location.href);
+      posterUrl.searchParams.set('n', name);
+      posterUrl.searchParams.set('u', link);
+      $('poster').href = posterUrl.href;
       $('share').href = 'https://wa.me/?text=' + encodeURIComponent(
         `Merci pour votre visite chez ${name} ! 🙏 Votre avis compte beaucoup pour nous : ${link}`
       );
