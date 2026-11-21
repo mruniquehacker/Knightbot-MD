@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Votre avis compte</title>
+  <meta name="robots" content="noindex">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+</head>
+<body>
+  <main class="review">
+    <div class="card">
+      <!-- Step 1: rating -->
+      <div class="step" id="s-rate">
+        <h2 id="shop" style="font-size:1.5rem">Votre avis</h2>
+        <p style="color:var(--muted);margin:0">Comment s'est passée votre visite ?</p>
+        <div class="stars" id="stars" role="radiogroup" aria-label="Note de 1 à 5 étoiles"></div>
+        <p style="color:var(--muted);font-size:.9rem" id="label">&nbsp;</p>
+      </div>
+
+      <!-- Step 2a: happy -->
+      <div class="step" id="s-happy" hidden>
+        <div class="big-emoji">🎉</div>
+        <h2 style="font-size:1.5rem">Merci beaucoup !</h2>
+        <p style="color:var(--muted)">Pourriez-vous partager votre expérience sur Google ? Cela prend 30 secondes et aide énormément <span class="shop-name"></span>.</p>
+        <a class="btn block google-link" target="_blank" rel="noopener">⭐ Laisser un avis sur Google</a>
+      </div>
+
+      <!-- Step 2b: unhappy -->
+      <div class="step" id="s-sad" hidden>
+        <div class="big-emoji">🙏</div>
+        <h2 style="font-size:1.5rem">Nous sommes désolés</h2>
+        <p style="color:var(--muted)">Dites-nous ce qui n'a pas été. Votre message sera envoyé directement au gérant.</p>
+        <textarea id="msg" placeholder="Qu'est-ce que nous pourrions améliorer ?"></textarea>
+        <button class="btn block" id="send" style="margin-top:12px">Envoyer au gérant</button>
+        <a class="link-muted google-link" target="_blank" rel="noopener">Ou laisser un avis public sur Google</a>
+      </div>
+
+      <!-- Step 3: thanks -->
+      <div class="step" id="s-done" hidden>
+        <div class="big-emoji">💛</div>
+        <h2 style="font-size:1.5rem">Merci pour votre retour</h2>
+        <p style="color:var(--muted)">Le gérant a bien été informé. Nous ferons mieux la prochaine fois.</p>
+      </div>
+
+      <div class="powered">Propulsé par <a href="index.html">AvisFlash</a></div>
+    </div>
+  </main>
+
+  <script>
+    const p = new URLSearchParams(location.search);
+    const demo = p.has('demo');
+    const name = (p.get('n') || 'notre établissement').slice(0, 60);
+    const wa = (p.get('w') || '').replace(/\D/g, '');
+    let google = '';
+    try {
+      const u = new URL(p.get('g') || '');
+      if (u.protocol === 'https:') google = u.href;
+    } catch {}
+
+    document.title = `Votre avis – ${name}`;
+    document.getElementById('shop').textContent = name;
+    document.querySelectorAll('.shop-name').forEach((el) => (el.textContent = name));
+    document.querySelectorAll('.google-link').forEach((a) => {
+      if (google) a.href = google;
+      else if (demo) a.href = 'javascript:alert("Démo : ici, le client serait redirigé vers votre fiche Google.")';
+      else a.hidden = true;
+    });
+
+    const labels = ['', 'Très décevant', 'Décevant', 'Correct', 'Bien', 'Excellent !'];
+    const starsEl = document.getElementById('stars');
+    let rating = 0;
+
+    for (let i = 1; i <= 5; i++) {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.textContent = '★';
+      b.setAttribute('role', 'radio');
+      b.setAttribute('aria-label', `${i} étoile${i > 1 ? 's' : ''}`);
+      b.addEventListener('mouseenter', () => paint(i));
+      b.addEventListener('focus', () => paint(i));
+      b.addEventListener('click', () => choose(i));
+      starsEl.appendChild(b);
+    }
+    starsEl.addEventListener('mouseleave', () => paint(rating));
+
+    function paint(n) {
+      [...starsEl.children].forEach((b, idx) => b.classList.toggle('on', idx < n));
+      document.getElementById('label').textContent = labels[n] || ' ';
+    }
+
+    function show(id) {
+      document.querySelectorAll('.step').forEach((s) => (s.hidden = s.id !== id));
+    }
+
+    function choose(n) {
+      rating = n;
+      paint(n);
+      [...starsEl.children].forEach((b, idx) => b.setAttribute('aria-checked', idx + 1 === n));
+      setTimeout(() => show(n >= 4 ? 's-happy' : 's-sad'), 350);
+    }
+
+    document.getElementById('send').addEventListener('click', () => {
+      const msg = document.getElementById('msg').value.trim();
+      const text = `📝 Nouveau retour client (${rating}/5) pour ${name} :\n\n${msg || '(aucun commentaire)'}`;
+      if (wa) {
+        window.open(`https://wa.me/${wa}?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
+      } else if (demo) {
+        alert('Démo : ce message serait envoyé sur le WhatsApp du gérant :\n\n' + text);
+      }
+      show('s-done');
+    });
+  </script>
+</body>
+</html>

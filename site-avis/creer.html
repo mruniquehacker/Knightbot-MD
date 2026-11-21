@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Créer mon lien – AvisFlash</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+</head>
+<body>
+  <div class="wrap">
+    <header class="nav">
+      <a class="logo" href="index.html">Avis<span>Flash</span></a>
+      <nav class="nav-links"><a href="index.html">← Retour</a></nav>
+    </header>
+
+    <main class="form-page">
+      <h2>Créez votre page d'avis</h2>
+      <p style="color:var(--muted)">Remplissez ces 3 champs pour obtenir votre lien et votre QR code.</p>
+
+      <form id="f" novalidate>
+        <label for="name">Nom du commerce</label>
+        <input id="name" required maxlength="60" placeholder="Ex. : Salon Belle Allure">
+
+        <label for="google">Lien d'avis Google
+          <span class="hint">Google Business Profile → « Demander des avis » → copier le lien</span>
+        </label>
+        <input id="google" type="url" required placeholder="https://g.page/r/XXXX/review">
+
+        <label for="wa">Votre numéro WhatsApp
+          <span class="hint">Avec l'indicatif du pays, sans « + » ni espaces. Ex. : 221771234567</span>
+        </label>
+        <input id="wa" inputmode="numeric" placeholder="221771234567">
+
+        <div class="error" id="err" role="alert"></div>
+        <button class="btn block" type="submit">Générer mon lien</button>
+      </form>
+
+      <div class="result card" id="result" hidden>
+        <h3>🎉 Votre page est prête !</h3>
+        <p>Imprimez ce QR code et posez-le près de la caisse ou sur les tables.</p>
+        <div id="qrcode"></div>
+        <div class="link-box">
+          <input id="link" readonly aria-label="Votre lien">
+          <button class="btn small" type="button" id="copy">Copier</button>
+        </div>
+        <div class="cta-row" style="justify-content:center">
+          <a class="btn ghost small" id="open" target="_blank" rel="noopener">Tester ma page</a>
+          <button class="btn ghost small" type="button" id="dl">Télécharger le QR code</button>
+          <a class="btn ghost small" id="share" target="_blank" rel="noopener">Partager sur WhatsApp</a>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    const $ = (id) => document.getElementById(id);
+    let qr;
+
+    $('f').addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = $('name').value.trim();
+      const google = $('google').value.trim();
+      const wa = $('wa').value.replace(/\D/g, '');
+      $('err').textContent = '';
+
+      if (!name) return ($('err').textContent = 'Indiquez le nom de votre commerce.');
+      let gUrl;
+      try { gUrl = new URL(google); } catch { gUrl = null; }
+      if (!gUrl || gUrl.protocol !== 'https:') return ($('err').textContent = 'Le lien Google doit commencer par https://');
+      if (wa && (wa.length < 8 || wa.length > 15)) return ($('err').textContent = 'Le numéro WhatsApp semble incorrect.');
+
+      const url = new URL('avis.html', location.href);
+      url.searchParams.set('n', name);
+      url.searchParams.set('g', gUrl.href);
+      if (wa) url.searchParams.set('w', wa);
+      const link = url.href;
+
+      $('link').value = link;
+      $('open').href = link;
+      $('share').href = 'https://wa.me/?text=' + encodeURIComponent(
+        `Merci pour votre visite chez ${name} ! 🙏 Votre avis compte beaucoup pour nous : ${link}`
+      );
+
+      $('qrcode').innerHTML = '';
+      qr = new QRCode($('qrcode'), { text: link, width: 220, height: 220, correctLevel: QRCode.CorrectLevel.M });
+      $('result').hidden = false;
+      $('result').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    $('copy').addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText($('link').value); }
+      catch { $('link').select(); document.execCommand('copy'); }
+      $('copy').textContent = 'Copié ✓';
+      setTimeout(() => ($('copy').textContent = 'Copier'), 1800);
+    });
+
+    $('dl').addEventListener('click', () => {
+      const canvas = $('qrcode').querySelector('canvas');
+      const img = $('qrcode').querySelector('img');
+      const src = canvas ? canvas.toDataURL('image/png') : img && img.src;
+      if (!src) return;
+      const a = document.createElement('a');
+      a.href = src;
+      a.download = 'qr-avis.png';
+      a.click();
+    });
+  </script>
+</body>
+</html>
