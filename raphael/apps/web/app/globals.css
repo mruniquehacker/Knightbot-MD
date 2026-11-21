@@ -1,0 +1,50 @@
+@import "tailwindcss";
+
+/* Système de design RAPHAËL — voir docs/DESIGN.md */
+@theme {
+  --color-void: #05070d;
+  --color-abyss: #0a1020;
+  --color-night: #101a33;
+  --color-line: #1c2a4a;
+  --color-cyan: #22d3ee;
+  --color-cyan-soft: #67e8f9;
+  --color-azure: #3b82f6;
+  --color-ice: #e6f6ff;
+  --color-mist: #8ca3c7;
+  --color-warn: #f5b544;
+  --color-danger: #f25f7a;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-grotesk), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+
+  --shadow-glow: 0 0 24px rgb(34 211 238 / 0.25);
+}
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  background: var(--color-void);
+  color: var(--color-ice);
+  min-height: 100dvh;
+}
+
+body {
+  /* Fond : léger dégradé radial et grille holographique très discrète. */
+  background-image:
+    radial-gradient(ellipse at 50% -10%, rgb(34 211 238 / 0.08), transparent 60%),
+    linear-gradient(rgb(28 42 74 / 0.18) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(28 42 74 / 0.18) 1px, transparent 1px);
+  background-size: 100% 100%, 48px 48px, 48px 48px;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+    env(safe-area-inset-left);
+  -webkit-font-smoothing: antialiased;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-cyan);
+  outline-offset: 2px;
+}

@@ -1,0 +1,16 @@
+# Environnement de développement RAPHAËL : PostgreSQL 16 + pgvector.
+services:
+  db:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: raphael
+      POSTGRES_PASSWORD: raphael   # développement uniquement
+      POSTGRES_DB: raphael
+    ports: ["127.0.0.1:5432:5432"]  # jamais exposé hors de la machine
+    volumes: [raphael-db:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U raphael"]
+      interval: 5s
+      retries: 10
+volumes:
+  raphael-db:

@@ -1,0 +1,21 @@
+{
+  "name": "RAPHAËL",
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "features": {
+    "ghcr.io/devcontainers/features/node:1": { "version": "22" }
+  },
+  "containerEnv": {
+    "RAPHAEL_DATABASE_URL": "postgresql://raphael:raphael@db:5432/raphael"
+  },
+  "postCreateCommand": "bash raphael/setup.sh",
+  "forwardPorts": [3000],
+  "portsAttributes": {
+    "3000": { "label": "RAPHAËL", "onAutoForward": "openBrowser" },
+    "8000": { "label": "API (interne)", "onAutoForward": "silent" }
+  },
+  "customizations": {
+    "codespaces": { "openFiles": ["raphael/README.md"] }
+  }
+}

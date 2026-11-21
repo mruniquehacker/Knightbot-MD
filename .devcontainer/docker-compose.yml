@@ -1,0 +1,18 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/python:3.12
+    volumes:
+      - ../..:/workspaces:cached
+    command: sleep infinity
+    depends_on: [db]
+  db:
+    image: pgvector/pgvector:pg16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: raphael
+      POSTGRES_PASSWORD: raphael
+      POSTGRES_DB: raphael
+    volumes:
+      - raphael-db:/var/lib/postgresql/data
+volumes:
+  raphael-db:
